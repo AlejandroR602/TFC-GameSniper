@@ -1,0 +1,95 @@
+<!-- ============================================================
+     VIEW: Profile  |  GameSniper
+     Vista pura HTML. ProfileController.js gestiona los datos.
+     ============================================================ -->
+
+<section class="section">
+    <div class="container">
+        <div class="profile-layout">
+
+            <!-- Sidebar (poblado por JS con datos del usuario) -->
+            <aside class="profile-sidebar">
+                <div class="profile-avatar" id="profileAvatar">?</div>
+                <h2 class="profile-sidebar__name" id="profileUsername">Cargando...</h2>
+                <span class="role-badge" id="profileRoleBadge"></span>
+                <div class="profile-sidebar__stats">
+                    <div class="stat">
+                        <span class="stat__value" id="statWishlist">–</span>
+                        <span class="stat__label">En Wishlist</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat__value" id="statSearches">–</span>
+                        <span class="stat__label">Búsquedas</span>
+                    </div>
+                </div>
+                <nav class="profile-nav">
+                    <a href="#info"     class="profile-nav__link active">📋 Información</a>
+                    <a href="#security" class="profile-nav__link">🔒 Seguridad</a>
+                    <a href="#history"  class="profile-nav__link">🕐 Historial</a>
+                    <a id="navWishlist" href="#" class="profile-nav__link">❤️ Wishlist</a>
+                </nav>
+            </aside>
+
+            <!-- Contenido principal -->
+            <div class="profile-main">
+
+                <!-- Alerta global -->
+                <div id="profileAlert" hidden></div>
+
+                <!-- Información personal -->
+                <div class="profile-card" id="info">
+                    <h3 class="profile-card__title">📋 Información personal</h3>
+                    <div class="auth-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="editUsername">Nombre de usuario</label>
+                                <input type="text" id="editUsername" maxlength="50" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="editEmail">Email</label>
+                                <input type="email" id="editEmail" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Miembro desde</label>
+                            <input type="text" id="memberSince" disabled>
+                        </div>
+                        <button id="saveProfileBtn" class="btn btn-primary">Guardar cambios</button>
+                    </div>
+                </div>
+
+                <!-- Cambio de contraseña -->
+                <div class="profile-card" id="security">
+                    <h3 class="profile-card__title">🔒 Cambiar contraseña</h3>
+                    <div class="auth-form">
+                        <div class="form-group">
+                            <label for="currentPass">Contraseña actual</label>
+                            <input type="password" id="currentPass" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="newPass">Nueva contraseña</label>
+                            <input type="password" id="newPass" minlength="6" required>
+                        </div>
+                        <button id="changePassBtn" class="btn btn-outline">Cambiar contraseña</button>
+                    </div>
+                </div>
+
+                <!-- Historial de búsquedas (poblado por JS) -->
+                <div class="profile-card" id="history">
+                    <h3 class="profile-card__title">🕐 Historial de búsquedas</h3>
+                    <div id="historyLoading" class="loading-state" style="padding:1rem 0">
+                        <div class="spinner spinner-sm"></div>
+                    </div>
+                    <ul class="history-list" id="historyList" hidden></ul>
+                    <p class="text-muted" id="historyEmpty" hidden>Aún no has realizado búsquedas.</p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+
+<script type="module">
+import { ProfileController } from './js/controllers/profile.js';
+new ProfileController().init();
+</script>

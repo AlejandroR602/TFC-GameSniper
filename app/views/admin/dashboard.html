@@ -1,0 +1,76 @@
+<!-- ============================================================
+     VIEW: Admin Dashboard  |  GameSniper
+     Vista pura HTML. AdminController.js gestiona los datos.
+     ============================================================ -->
+
+<section class="section">
+    <div class="container">
+
+        <div class="page-header">
+            <h1>🛡 Panel de Administración</h1>
+            <p>Gestión de usuarios y estadísticas de GameSniper</p>
+        </div>
+
+        <div id="adminAlert" hidden></div>
+
+        <!-- Estadísticas (pobladas por JS) -->
+        <div class="admin-stats">
+            <div class="stat-card">
+                <div class="stat-card__icon">👥</div>
+                <div class="stat-card__value" id="statUsers">–</div>
+                <div class="stat-card__label">Usuarios registrados</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card__icon">❤️</div>
+                <div class="stat-card__value" id="statWishlists">–</div>
+                <div class="stat-card__label">Juegos en wishlists</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card__icon">🔌</div>
+                <div class="stat-card__value">3</div>
+                <div class="stat-card__label">APIs conectadas</div>
+            </div>
+        </div>
+
+        <!-- Tabla de usuarios (poblada por JS) -->
+        <div class="admin-card">
+            <div class="admin-card__header">
+                <h2>👥 Gestión de usuarios</h2>
+            </div>
+            <div id="usersLoading" class="loading-state" style="padding:2rem">
+                <div class="spinner"></div>
+            </div>
+            <div class="table-wrap" id="usersTable" hidden>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Usuario</th>
+                            <th>Email</th>
+                            <th>Rol</th>
+                            <th>Registrado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Estado de las APIs (poblado por JS) -->
+        <div class="admin-card">
+            <div class="admin-card__header">
+                <h2>🔌 Estado de las APIs</h2>
+            </div>
+            <div class="api-status-list" id="apiStatusList">
+                <div class="loading-state" style="padding:1rem"><div class="spinner spinner-sm"></div></div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<script type="module">
+import { AdminController } from './js/controllers/admin.js';
+new AdminController().init();
+</script>

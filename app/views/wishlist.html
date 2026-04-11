@@ -1,0 +1,35 @@
+<!-- ============================================================
+     VIEW: Wishlist  |  GameSniper
+     Vista pura HTML. WishlistController.js gestiona los datos.
+     ============================================================ -->
+
+<section class="section">
+    <div class="container">
+        <div class="page-header">
+            <h1>❤️ Mi Wishlist</h1>
+            <p id="wishlistCount">Cargando...</p>
+        </div>
+
+        <!-- Cargando -->
+        <div id="wishlistLoading" class="loading-state">
+            <div class="spinner"></div>
+            <p>Cargando tu lista de deseos...</p>
+        </div>
+
+        <!-- Lista vacía -->
+        <div id="wishlistEmpty" class="empty-state" hidden>
+            <div class="empty-state__icon">🎮</div>
+            <h3>Tu wishlist está vacía</h3>
+            <p>Busca juegos y añádelos para tenerlos siempre localizados.</p>
+            <a id="exploreBtn" href="#" class="btn btn-primary">Explorar juegos</a>
+        </div>
+
+        <!-- Grid de juegos (poblado por JS) -->
+        <div class="games-grid" id="wishlistGrid" hidden></div>
+    </div>
+</section>
+
+<script type="module">
+import { WishlistController } from './js/controllers/wishlist.js';
+new WishlistController().init();
+</script>

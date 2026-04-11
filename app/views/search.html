@@ -1,0 +1,59 @@
+<!-- ============================================================
+     VIEW: Search  |  GameSniper
+     Vista pura HTML. SearchController.js gestiona los datos.
+     ============================================================ -->
+
+<section class="section">
+    <div class="container">
+
+        <div class="search-header">
+            <h1 class="search-header__title" id="searchTitle">Busca tu próximo juego</h1>
+            <div class="search-bar">
+                <input
+                    type="search"
+                    id="searchInput"
+                    placeholder="Busca un juego..."
+                    autocomplete="off"
+                >
+                <button id="searchBtn" class="btn btn-primary">Buscar</button>
+            </div>
+        </div>
+
+        <!-- Filtros de ordenación -->
+        <div class="search-filters" id="searchFilters" hidden>
+            <span class="search-filters__label">Ordenar por:</span>
+            <button class="filter-btn active" data-order="-rating">Valoración</button>
+            <button class="filter-btn" data-order="-released">Fecha</button>
+            <button class="filter-btn" data-order="name">Nombre A-Z</button>
+        </div>
+
+        <!-- Estado: cargando -->
+        <div id="searchLoading" class="loading-state" hidden>
+            <div class="spinner"></div>
+            <p>Buscando juegos...</p>
+        </div>
+
+        <!-- Estado: sin resultados -->
+        <div id="searchEmpty" class="empty-state" hidden>
+            <div class="empty-state__icon">🎮</div>
+            <h3>Sin resultados</h3>
+            <p>No encontramos juegos para "<span id="emptyQuery"></span>".<br>Prueba con otro título.</p>
+        </div>
+
+        <!-- Estado: error -->
+        <div id="searchError" class="alert alert-error" hidden>
+            Error al cargar resultados. Comprueba tu clave de RAWG API en <code>config/apis.php</code>.
+        </div>
+
+        <!-- Grid de resultados (poblado por JS) -->
+        <div class="games-grid" id="gamesGrid"></div>
+
+        <!-- Paginación -->
+        <div class="pagination" id="pagination"></div>
+    </div>
+</section>
+
+<script type="module">
+import { SearchController } from './js/controllers/search.js';
+new SearchController().init();
+</script>

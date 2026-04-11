@@ -1,0 +1,78 @@
+<!-- ============================================================
+     VIEW: Game Detail  |  GameSniper
+     Vista pura HTML. GameDetailController.js gestiona los datos.
+     ============================================================ -->
+
+<section class="section" id="gameDetailPage">
+    <div class="container">
+
+        <!-- Cargando -->
+        <div id="gameLoading" class="loading-state">
+            <div class="spinner"></div>
+            <p>Cargando información del juego...</p>
+        </div>
+
+        <!-- Error -->
+        <div id="gameError" class="alert alert-error" hidden>
+            No se pudo cargar el juego. Comprueba tu clave de RAWG API.
+        </div>
+
+        <!-- Contenido principal (hidden hasta que carguen los datos) -->
+        <div id="gameContent" hidden>
+
+            <!-- Hero del juego -->
+            <div class="game-detail__hero">
+                <div class="game-detail__backdrop" id="gameBackdrop"></div>
+                <div class="game-detail__hero-content">
+                    <img id="gameCover" src="" alt="" class="game-detail__cover">
+                    <div class="game-detail__info">
+                        <div id="gamePlatforms" class="game-detail__platforms"></div>
+                        <h1 id="gameName" class="game-detail__title"></h1>
+                        <div class="game-detail__meta">
+                            <span id="gameRating"></span>
+                            <span id="gameRelease"></span>
+                            <span id="gameDev"></span>
+                        </div>
+                        <div id="gameGenres" class="game-detail__tags"></div>
+                        <p id="gameSummary" class="game-detail__summary"></p>
+                        <div class="game-detail__actions">
+                            <button id="wishlistBtn" class="btn btn-primary">
+                                🤍 Añadir a wishlist
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Precios -->
+            <div class="prices-section">
+                <h2 class="prices-section__title">💰 Comparativa de precios</h2>
+                <div id="pricesLoading" class="loading-state">
+                    <div class="spinner spinner-sm"></div>
+                    <p>Obteniendo precios en tiempo real...</p>
+                </div>
+                <div id="pricesEmpty" class="empty-state" hidden>
+                    <div class="empty-state__icon">🏪</div>
+                    <h3>Sin precios disponibles</h3>
+                    <p>No encontramos precios activos para este juego.</p>
+                </div>
+                <div id="pricesError" class="alert alert-error" hidden>
+                    Error cargando precios. Comprueba tu clave de IsThereAnyDeal API.
+                </div>
+                <div id="pricesGrid" class="prices-grid" hidden></div>
+            </div>
+
+            <!-- Capturas de pantalla -->
+            <div id="screenshotsSection" class="screenshots-section" hidden>
+                <h2>📸 Capturas de pantalla</h2>
+                <div id="screenshotsGrid" class="screenshots-grid"></div>
+            </div>
+
+        </div><!-- /gameContent -->
+    </div>
+</section>
+
+<script type="module">
+import { GameDetailController } from './js/controllers/game_detail.js';
+new GameDetailController().init();
+</script>

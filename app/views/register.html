@@ -1,0 +1,81 @@
+<!-- ============================================================
+     VIEW: Register  |  GameSniper
+     Vista pura HTML. AuthController.js gestiona el envío.
+     ============================================================ -->
+
+<section class="auth-section section">
+    <div class="container">
+        <div class="auth-card">
+
+            <div class="auth-card__header">
+                <div class="auth-card__icon">🎯</div>
+                <h1>Crea tu cuenta</h1>
+                <p>Gratis. Sin tarjeta. Sin publicidad.</p>
+            </div>
+
+            <!-- Alertas (pobladas por JS) -->
+            <div id="registerAlert" hidden></div>
+
+            <div class="auth-form" id="registerForm">
+
+                <div class="form-group">
+                    <label for="username">Nombre de usuario</label>
+                    <input
+                        type="text"
+                        id="username"
+                        placeholder="gamer_pro_123"
+                        minlength="3"
+                        maxlength="50"
+                        autocomplete="username"
+                        required
+                    >
+                    <span class="form-hint">Mínimo 3 caracteres</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input
+                        type="email"
+                        id="email"
+                        placeholder="tu@email.com"
+                        autocomplete="email"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Contraseña</label>
+                    <div class="input-password">
+                        <input
+                            type="password"
+                            id="password"
+                            placeholder="Mínimo 6 caracteres"
+                            minlength="6"
+                            autocomplete="new-password"
+                            required
+                        >
+                        <button type="button" class="toggle-pass" id="toggleRegPass" aria-label="Mostrar contraseña">👁</button>
+                    </div>
+                    <!-- Indicador de fuerza -->
+                    <div class="password-strength">
+                        <div class="password-strength__bar" id="passBar"></div>
+                    </div>
+                    <span class="form-hint" id="passHint">Introduce una contraseña</span>
+                </div>
+
+                <button type="button" id="registerBtn" class="btn btn-primary btn-block">
+                    Crear cuenta
+                </button>
+            </div>
+
+            <p class="auth-card__footer">
+                ¿Ya tienes cuenta? <a id="loginLink" href="#">Inicia sesión</a>
+            </p>
+        </div>
+    </div>
+</section>
+
+<script type="module">
+import { AuthController } from './js/controllers/auth.js';
+new AuthController('register').init();
+</script>
