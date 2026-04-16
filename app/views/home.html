@@ -18,16 +18,11 @@
             en Steam, Epic, GOG, Humble y más tiendas digitales.
         </p>
         <div class="hero__search">
-            <input
-                type="search"
-                id="heroSearchInput"
-                placeholder="¿Qué juego buscas?"
-                autocomplete="off"
-                autofocus
-            >
+            <input type="search" name="q" id="heroSearchInput" placeholder="¿Qué juego buscas?" autocomplete="off" autofocus>
             <button id="heroSearchBtn" class="btn btn-primary btn-lg">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="m21 21-4.35-4.35" />
                 </svg>
                 Buscar
             </button>
@@ -77,13 +72,12 @@
         <h2>Crea tu cuenta gratis</h2>
         <p>Guarda tu wishlist y accede a tu historial desde cualquier dispositivo.</p>
         <div class="cta__btns">
-            <a id="ctaRegister" href="http://localhost/Proyectos/TFC-GameSniper/TFC-GameSniper/public//register" class="btn btn-primary btn-lg">Registrarse gratis</a>
-            <a id="ctaLogin"    href="http://localhost/Proyectos/TFC-GameSniper/TFC-GameSniper/public//login" class="btn btn-outline btn-lg">Iniciar sesión</a>
+            <a id="ctaRegister" href="http://localhost/Proyectos/TFC-GameSniper/TFC-GameSniper/public//register"
+                class="btn btn-primary btn-lg">Registrarse gratis</a>
+            <a id="ctaLogin" href="http://localhost/Proyectos/TFC-GameSniper/TFC-GameSniper/public//login"
+                class="btn btn-outline btn-lg">Iniciar sesión</a>
         </div>
     </div>
 </section>
 
-<script type="module">
-import { HomeController } from './js/controllers/home.js';
-new HomeController().init();
-</script>
+<script type="module" src="/Proyectos/TFC-GameSniper/TFC-GameSniper/public/js/app.js"></script>

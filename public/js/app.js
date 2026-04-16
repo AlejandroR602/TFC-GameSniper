@@ -3,6 +3,17 @@
  * JavaScript global: toast, hamburger, scroll, utilidades.
  */
 
+import { SearchController } from './controllers/search.js';
+
+
+// ----------------------------------------------------------------
+// LOAD DE BÚSQUEDAS
+// ----------------------------------------------------------------
+
+window.addEventListener('DOMContentLoaded', () => {
+        new SearchController().init();
+});
+
 // ----------------------------------------------------------------
 // TOAST NOTIFICATIONS
 // ----------------------------------------------------------------
@@ -11,7 +22,7 @@ function showToast(message, duration = 3000) {
     if (existing) existing.remove();
 
     const toast = document.createElement('div');
-    toast.className   = 'toast';
+    toast.className = 'toast';
     toast.textContent = message;
     document.body.appendChild(toast);
 
@@ -22,7 +33,7 @@ function showToast(message, duration = 3000) {
 // HAMBURGER MENU (móvil)
 // ----------------------------------------------------------------
 const hamburger = document.getElementById('hamburger');
-const navMenu   = document.getElementById('navMenu');
+const navMenu = document.getElementById('navMenu');
 if (hamburger && navMenu) {
     hamburger.addEventListener('click', () => {
         navMenu.classList.toggle('open');
@@ -109,12 +120,13 @@ document.addEventListener('keydown', (e) => {
 // ----------------------------------------------------------------
 const userMenu = document.querySelector('.navbar__user');
 
-userMenu.addEventListener('click', (e) => {
-  e.stopPropagation();
-  userMenu.classList.toggle('open');
-});
+if (userMenu) {
+    userMenu.addEventListener('click', (e) => {
+        e.stopPropagation();
+        userMenu.classList.toggle('open');
+    });
 
-// Cerrar al hacer click fuera
-document.addEventListener('click', () => {
-  userMenu.classList.remove('open');
-});
+    document.addEventListener('click', () => {
+        userMenu.classList.remove('open');
+    });
+}
