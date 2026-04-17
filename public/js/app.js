@@ -103,3 +103,17 @@ document.addEventListener('keydown', (e) => {
         }, 300);
     }
 });
+// ----------------------------------------------------------------
+// Control del NAVBAR
+// ----------------------------------------------------------------
+const userMenu = document.querySelector('.navbar__user');
+
+userMenu.addEventListener('click', (e) => {
+  e.stopPropagation();
+  userMenu.classList.toggle('open');
+});
+
+// Cerrar al hacer click fuera
+document.addEventListener('click', () => {
+  userMenu.classList.remove('open');
+});

@@ -141,7 +141,7 @@ ul { list-style: none; }
   transition: background var(--transition);
 }
 .navbar__dropdown a:hover { background: var(--surface3); }
-.navbar__user:hover .navbar__dropdown { display: block; }
+.navbar__user.open .navbar__dropdown { display: block; }
 
 /* Hamburger (móvil) */
 .navbar__hamburger {
