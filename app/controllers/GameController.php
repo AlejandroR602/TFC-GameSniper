@@ -39,7 +39,14 @@ class GameController {
             'page_size' => 20, 'page' => $page, 'ordering' => $order,
         ]);
         $r = $this->get($url);
-        echo $r ?: json_encode(['error' => 'Error con RAWG API. Comprueba tu clave en config/apis.php']);
+        if (!$r) { echo json_encode(['error' => 'No se pudo conectar con RAWG API.']); return; }
+        $decoded = json_decode($r, true);
+        if (json_last_error() !== JSON_ERROR_NONE) { echo json_encode(['error' => 'Respuesta inválida de RAWG API.']); return; }
+        if (!isset($decoded['results'])) {
+            $detail = $decoded['detail'] ?? $decoded['error'] ?? 'Error desconocido de RAWG API.';
+            echo json_encode(['error' => $detail]); return;
+        }
+        echo $r;
     }
 
     // ── API PROXY: IsThereAnyDeal ─────────────────────────────────

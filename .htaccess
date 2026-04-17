@@ -1,9 +1,9 @@
 RewriteEngine On
-RewriteBase /GameSniper/
+RewriteBase /TFC-GameSniper/
 
 # Protect sensitive directories
 RewriteRule ^(app|config|core|database)/ - [F,L]
 
 # Redirect root requests to public/
-RewriteCond %{REQUEST_URI} !^/GameSniper/public/
+RewriteCond %{REQUEST_URI} !^/TFC-GameSniper/public/
 RewriteRule ^(.*)$ public/$1 [L,QSA]

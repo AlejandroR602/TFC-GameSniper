@@ -49,6 +49,7 @@ export class SearchController {
 
         try {
             const data = await this.model.search(this.query, this.page, this.order);
+            if (data?.error) { this._show('error'); return; }
             if (!data?.results?.length) { this._show('empty'); return; }
 
             document.getElementById('searchFilters').hidden = false;

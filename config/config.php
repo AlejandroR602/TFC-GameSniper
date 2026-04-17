@@ -4,7 +4,7 @@
 // ============================================================
 
 // URL base del proyecto (ajusta si cambias el nombre de carpeta)
-define('BASE_URL', '/GameSniper/public');
+define('BASE_URL', '/TFC-GameSniper/public');
 define('APP_NAME', 'GameSniper');
 define('APP_VERSION', '1.0.0');
 
