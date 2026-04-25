@@ -5,7 +5,7 @@
  * Las peticiones reales a APIs externas se proxyan por PHP
  * para mantener las claves seguras en el servidor.
  */
- export class GameModel {
+export class GameModel {
     constructor() {
         this.baseUrl = document.querySelector('meta[name="base-url"]')?.content ?? '';
     }
@@ -65,8 +65,21 @@
 
         return {
             rawg,
-            igdb:   igdb.status   === 'fulfilled' ? igdb.value   : null,
+            igdb: igdb.status === 'fulfilled' ? igdb.value : null,
             prices: prices.status === 'fulfilled' ? prices.value : null,
         };
+    }
+
+    async fetchTopRated(limit = 10) {
+        const params = new URLSearchParams({
+            ordering: '-rating',
+            metacritic: '80,100',
+            page_size: limit,
+            exclude_additions: true,
+        });
+        const res = await fetch(`${this.baseUrl}/api/search?${params}`);
+        if (!res.ok) throw new Error(`RAWG error: ${res.status}`);
+        const data = await res.json();
+        return data.results ?? [];
     }
 }

@@ -596,6 +596,52 @@ ul { list-style: none; }
   color: var(--text-muted); font-size: .8rem;
 }
 
+/*-------------Precio-------------------------------------*/
+.game-card__price {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    margin-top: 6px;
+    min-height: 18px;
+}
+
+.price-label {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.price-value {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    transition: color 0.2s;
+}
+
+/* ---------- CARRUSEL HERO ------------------------------------ */
+.hero__carousel { margin-top: 2rem; width: 100%; }
+.hero__carousel-header {
+    display: flex; align-items: center;
+    justify-content: space-between; margin-bottom: .75rem;
+}
+.hero__carousel-title { font-size: 1rem; font-weight: 700; margin: 0; }
+.hero__carousel-wrap  { overflow: hidden; }
+.hero__carousel-track {
+    display: flex; gap: 16px;
+    transition: transform .35s cubic-bezier(.4,0,.2,1);
+}
+.hero__carousel-track .game-card { flex: 0 0 200px; }
+
+.carousel-btn {
+    width: 32px; height: 32px; border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--surface); color: var(--text);
+    font-size: 14px; cursor: pointer;
+    transition: var(--transition);
+}
+.carousel-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.carousel-btn:disabled { opacity: .35; cursor: not-allowed; }
+.carousel-nav { display: flex; gap: 6px; }
+
 /* ---------- RESPONSIVE -------------------------------------- */
 @media (max-width: 900px) {
   .profile-layout   { grid-template-columns: 1fr; }

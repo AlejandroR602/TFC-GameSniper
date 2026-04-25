@@ -18,26 +18,33 @@
             en Steam, Epic, GOG, Humble y más tiendas digitales.
         </p>
         <div class="hero__search">
-            <input
-                type="search"
-                id="heroSearchInput"
-                placeholder="¿Qué juego buscas?"
-                autocomplete="off"
-                autofocus
-            >
+            <input type="search" id="heroSearchInput" placeholder="¿Qué juego buscas?" autocomplete="off" autofocus>
             <button id="heroSearchBtn" class="btn btn-primary btn-lg">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="m21 21-4.35-4.35" />
                 </svg>
                 Buscar
             </button>
         </div>
-        <div class="hero__tags">
-            <span>Popular:</span>
-            <a href="" data-search="Cyberpunk 2077">Cyberpunk 2077</a>
-            <a href="" data-search="Elden Ring">Elden Ring</a>
-            <a href="" data-search="GTA V">GTA V</a>
-            <a href="" data-search="The Witcher 3">The Witcher 3</a>
+
+
+
+        <!-- CARRUSEL JUEGOS RECOMENDADOS -->
+        <div class="hero__carousel" id="heroCarousel">
+            <div class="hero__carousel-header">
+                <h2 class="hero__carousel-title">🔥 Más recomendados</h2>
+                <div class="carousel-nav">
+                    <button id="carouselPrev" class="carousel-btn" aria-label="Anterior" disabled>&#8592;</button>
+                    <button id="carouselNext" class="carousel-btn" aria-label="Siguiente">&#8594;</button>
+                </div>
+            </div>
+
+            <div class="hero__carousel-wrap">
+                <div class="hero__carousel-track" id="heroCarouselTrack">
+                    <!-- Inyectado por HomeController.js -->
+                </div>
+            </div>
         </div>
     </div>
 </section>
@@ -78,12 +85,12 @@
         <p>Guarda tu wishlist y accede a tu historial desde cualquier dispositivo.</p>
         <div class="cta__btns">
             <a id="ctaRegister" href="#" class="btn btn-primary btn-lg">Registrarse gratis</a>
-            <a id="ctaLogin"    href="#" class="btn btn-outline btn-lg">Iniciar sesión</a>
+            <a id="ctaLogin" href="#" class="btn btn-outline btn-lg">Iniciar sesión</a>
         </div>
     </div>
 </section>
 
 <script type="module">
-import { HomeController } from './js/controllers/home.js';
-new HomeController().init();
+    import { HomeController } from './js/controllers/home.js';
+    new HomeController().init();
 </script>

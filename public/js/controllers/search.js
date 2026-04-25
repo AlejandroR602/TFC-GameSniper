@@ -2,11 +2,11 @@ import { GameModel } from '../models/GameModel.js';
 
 export class SearchController {
     constructor() {
-        this.model   = new GameModel();
+        this.model = new GameModel();
         this.baseUrl = document.querySelector('meta[name="base-url"]')?.content ?? '';
-        this.query   = new URLSearchParams(window.location.search).get('q') ?? '';
-        this.page    = 1;
-        this.order   = '-rating';
+        this.query = new URLSearchParams(window.location.search).get('q') ?? '';
+        this.page = 1;
+        this.order = '-rating';
     }
 
     init() {
@@ -16,7 +16,7 @@ export class SearchController {
 
     _bindUI() {
         const input = document.getElementById('searchInput');
-        const btn   = document.getElementById('searchBtn');
+        const btn = document.getElementById('searchBtn');
 
         if (input) input.value = this.query;
 
@@ -28,7 +28,7 @@ export class SearchController {
                 document.querySelectorAll('.filter-btn').forEach(x => x.classList.remove('active'));
                 b.classList.add('active');
                 this.order = b.dataset.order;
-                this.page  = 1;
+                this.page = 1;
                 this._runSearch();
             });
         });
@@ -38,7 +38,7 @@ export class SearchController {
         const q = document.getElementById('searchInput')?.value.trim();
         if (!q) return;
         this.query = q;
-        this.page  = 1;
+        this.page = 1;
         history.pushState(null, '', `?q=${encodeURIComponent(q)}`);
         this._runSearch();
     }
@@ -69,10 +69,10 @@ export class SearchController {
 
     _renderGames(games) {
         document.getElementById('gamesGrid').innerHTML = games.map(g => {
-            const img  = g.background_image ?? `${this.baseUrl}/img/no-image.svg`;
+            const img = g.background_image ?? `${this.baseUrl}/img/no-image.svg`;
             const slug = g.slug ?? '';
             return `
-            <article class="game-card" onclick="window.location='${this.baseUrl}/game/${slug}'">
+            <article class="game-card" onclick="window.location='${this.baseUrl}/game/${slug}'" data-name="${this._esc(g.name)}">
                 <div class="game-card__img-wrap">
                     <img src="${img}" alt="${this._esc(g.name)}" loading="lazy"
                          onerror="this.src='${this.baseUrl}/img/no-image.svg'">
@@ -86,11 +86,58 @@ export class SearchController {
                         ${g.rating ? `<span>⭐ ${g.rating.toFixed(1)}</span>` : ''}
                         ${g.metacritic ? `<span class="badge badge-meta">${g.metacritic}</span>` : ''}
                     </div>
-                    ${g.genres?.length ? `<div class="game-card__tags">${g.genres.slice(0,2).map(x => `<span class="tag">${x.name}</span>`).join('')}</div>` : ''}
+                    ${g.genres?.length ? `<div class="game-card__tags">${g.genres.slice(0, 2).map(x => `<span class="tag">${x.name}</span>`).join('')}</div>` : ''}
+                    <div class="game-card__price" data-loaded="false">
+                        <span class="price-label">Desde</span>
+                        <span class="price-value">—</span>
+                    </div>
                 </div>
             </article>`;
         }).join('');
+        this._bindPriceHover();
     }
+
+    _bindPriceHover() {
+        const model = new GameModel();
+
+        document.querySelectorAll('.game-card').forEach(card => {
+            card.addEventListener('mouseenter', async () => {
+                const priceEl = card.querySelector('.game-card__price');
+                if (!priceEl || priceEl.dataset.loaded !== 'false') return;
+
+                // Marca como cargando para no repetir la petición
+                priceEl.dataset.loaded = 'loading';
+                const valueEl = priceEl.querySelector('.price-value');
+                valueEl.textContent = '...';
+
+                try {
+                    const data = await model.getPrices(card.dataset.name);
+                    const deals = data?.deals ?? [];
+
+                    if (!deals.length) {
+                        valueEl.textContent = 'Sin datos';
+                        priceEl.dataset.loaded = 'true';
+                        return;
+                    }
+
+                    // El precio más bajo entre todas las tiendas
+                    const best = deals.reduce((min, d) =>
+                        d.price.amount < min.price.amount ? d : min
+                    );
+
+                    valueEl.textContent = `${best.price.amount.toFixed(2)} €`;
+                    valueEl.style.color = 'var(--success)';
+                    priceEl.dataset.loaded = 'true';
+
+                } catch {
+                    valueEl.textContent = 'Sin datos';
+                    priceEl.dataset.loaded = 'true';
+                }
+            }, { passive: true });
+        });
+    }
+
+
 
     _renderPagination(current, total) {
         const pag = document.getElementById('pagination');
@@ -100,19 +147,19 @@ export class SearchController {
         const next = current < total
             ? `<button class="page-btn" id="nextBtn">Siguiente →</button>` : '';
         pag.innerHTML = `${prev}<span class="page-info">Página ${current} de ${total}</span>${next}`;
-        document.getElementById('prevBtn')?.addEventListener('click', () => { this.page--; this._runSearch(); window.scrollTo({top:0,behavior:'smooth'}); });
-        document.getElementById('nextBtn')?.addEventListener('click', () => { this.page++; this._runSearch(); window.scrollTo({top:0,behavior:'smooth'}); });
+        document.getElementById('prevBtn')?.addEventListener('click', () => { this.page--; this._runSearch(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+        document.getElementById('nextBtn')?.addEventListener('click', () => { this.page++; this._runSearch(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
     }
 
     _show(state) {
         const states = { loading: 'searchLoading', empty: 'searchEmpty', error: 'searchError', results: 'gamesGrid' };
-        ['searchLoading','searchEmpty','searchError','gamesGrid','pagination'].forEach(id => {
+        ['searchLoading', 'searchEmpty', 'searchError', 'gamesGrid', 'pagination'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.hidden = true;
         });
         if (state === 'results') {
-            document.getElementById('gamesGrid').hidden    = false;
-            document.getElementById('pagination').hidden   = false;
+            document.getElementById('gamesGrid').hidden = false;
+            document.getElementById('pagination').hidden = false;
         } else {
             const el = document.getElementById(states[state]);
             if (el) el.hidden = false;
@@ -120,6 +167,6 @@ export class SearchController {
     }
 
     _esc(s) {
-        return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 }
