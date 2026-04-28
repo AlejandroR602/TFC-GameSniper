@@ -1,16 +1,25 @@
 <?php
+
 /**
  * MODEL: Database
  * Singleton PDO. Centraliza la conexión a MySQL.
  */
-class Database {
+class Database
+{
     private static ?Database $instance = null;
     private PDO $pdo;
 
-    private function __construct() {
+    private function __construct()
+    {
+        // Primero inicializa la BD si no existe
+        $this->initDatabaseIfNeeded();
+
+        // Ahora conecta normalmente con dbname
         $dsn = sprintf(
             'mysql:host=%s;dbname=%s;charset=%s',
-            DB_HOST, DB_NAME, DB_CHARSET
+            DB_HOST,
+            DB_NAME,
+            DB_CHARSET
         );
         $options = [
             PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
@@ -26,52 +35,80 @@ class Database {
         }
     }
 
-    public static function getInstance(): Database {
+    /**
+     * Crea la base de datos y las tablas si no existen todavía.
+     * Se conecta sin dbname para poder ejecutar CREATE DATABASE.
+     */
+    private function initDatabaseIfNeeded(): void
+    {
+        try {
+            $pdo = new PDO(
+                'mysql:host=' . DB_HOST . ';charset=' . DB_CHARSET,
+                DB_USER,
+                DB_PASS,
+                [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+            );
+
+            $stmt = $pdo->query(
+                "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA 
+                 WHERE SCHEMA_NAME = '" . DB_NAME . "'"
+            );
+
+            if ($stmt->rowCount() === 0) {
+                $sqlFile = __DIR__ . '/../../database/gamesniper.sql';
+
+                if (!file_exists($sqlFile)) {
+                    die(json_encode([
+                        'error' => 'No se encontró el archivo SQL: ' . $sqlFile
+                    ]));
+                }
+
+                $pdo->exec(file_get_contents($sqlFile));
+            }
+        } catch (PDOException $e) {
+            die(json_encode([
+                'error' => 'Error al inicializar la base de datos: ' . $e->getMessage()
+            ]));
+        }
+    }
+    public static function getInstance(): Database
+    {
         if (self::$instance === null) {
             self::$instance = new self();
         }
         return self::$instance;
     }
 
-    public function getPDO(): PDO {
+    public function getPDO(): PDO
+    {
         return $this->pdo;
     }
 
-    /**
-     * Ejecuta una query preparada y retorna el statement
-     */
-    public function query(string $sql, array $params = []): PDOStatement {
+    public function query(string $sql, array $params = []): PDOStatement
+    {
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
         return $stmt;
     }
 
-    /**
-     * Retorna una sola fila
-     */
-    public function fetchOne(string $sql, array $params = []): ?array {
+    public function fetchOne(string $sql, array $params = []): ?array
+    {
         $result = $this->query($sql, $params)->fetch();
         return $result ?: null;
     }
 
-    /**
-     * Retorna todas las filas
-     */
-    public function fetchAll(string $sql, array $params = []): array {
+    public function fetchAll(string $sql, array $params = []): array
+    {
         return $this->query($sql, $params)->fetchAll();
     }
 
-    /**
-     * Ejecuta INSERT/UPDATE/DELETE y retorna filas afectadas
-     */
-    public function execute(string $sql, array $params = []): int {
+    public function execute(string $sql, array $params = []): int
+    {
         return $this->query($sql, $params)->rowCount();
     }
 
-    /**
-     * Retorna el último ID insertado
-     */
-    public function lastInsertId(): string {
+    public function lastInsertId(): string
+    {
         return $this->pdo->lastInsertId();
     }
 }

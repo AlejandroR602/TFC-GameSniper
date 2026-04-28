@@ -1,4 +1,4 @@
-import { UserModel }     from '../models/UserModel.js';
+import { UserModel } from '../models/UserModel.js';
 import { WishlistModel } from '../models/WishlistModel.js';
 
 const BASE_URL = document.querySelector('meta[name="base-url"]')?.content ?? '';
@@ -8,7 +8,7 @@ const BASE_URL = document.querySelector('meta[name="base-url"]')?.content ?? '';
 // ================================================================
 export class AuthController {
     constructor(mode) {
-        this.mode  = mode; // 'login' | 'register'
+        this.mode = mode; // 'login' | 'register'
         this.model = new UserModel();
     }
 
@@ -19,7 +19,7 @@ export class AuthController {
         document.getElementById('registerLink')?.setAttribute('href', `${base}/register`);
 
         if (this.mode === 'login') this._initLogin();
-        else                       this._initRegister();
+        else this._initRegister();
     }
 
     _initLogin() {
@@ -29,7 +29,7 @@ export class AuthController {
     }
 
     async _doLogin() {
-        const email    = document.getElementById('email')?.value.trim();
+        const email = document.getElementById('email')?.value.trim();
         const password = document.getElementById('password')?.value;
         if (!email || !password) { this._alert('Rellena todos los campos.', 'error'); return; }
 
@@ -59,12 +59,12 @@ export class AuthController {
 
     async _doRegister() {
         const username = document.getElementById('username')?.value.trim();
-        const email    = document.getElementById('email')?.value.trim();
+        const email = document.getElementById('email')?.value.trim();
         const password = document.getElementById('password')?.value;
 
         if (username.length < 3) { this._alert('El usuario debe tener al menos 3 caracteres.', 'error'); return; }
-        if (!email)               { this._alert('Introduce un email válido.', 'error'); return; }
-        if (password.length < 6)  { this._alert('La contraseña debe tener al menos 6 caracteres.', 'error'); return; }
+        if (!email) { this._alert('Introduce un email válido.', 'error'); return; }
+        if (password.length < 6) { this._alert('La contraseña debe tener al menos 6 caracteres.', 'error'); return; }
 
         const btn = document.getElementById('registerBtn');
         btn.disabled = true; btn.textContent = 'Creando cuenta...';
@@ -72,8 +72,14 @@ export class AuthController {
         try {
             const res = await this.model.register(username, email, password);
             if (res.success) {
-                this._alert(`✅ ${res.message} <a href="${BASE_URL}/login">→ Iniciar sesión</a>`, 'success');
-                btn.disabled = false; btn.textContent = 'Crear cuenta';
+                this._alert('✅ Cuenta creada. Iniciando sesión...', 'success');
+                const loginRes = await this.model.login(email, password);
+                if (loginRes.success) {
+                    setTimeout(() => window.location.href = `${BASE_URL}/`, 800);
+                } else {
+                    // Si el login falla por algo raro, redirige al login manual
+                    setTimeout(() => window.location.href = `${BASE_URL}/login`, 800);
+                }
             } else {
                 this._alert(res.message ?? 'Error al registrarse.', 'error');
                 btn.disabled = false; btn.textContent = 'Crear cuenta';
@@ -86,16 +92,16 @@ export class AuthController {
 
     _strengthMeter(val) {
         let score = 0;
-        if (val.length >= 6)           score++;
-        if (val.length >= 10)          score++;
-        if (/[A-Z]/.test(val))         score++;
-        if (/[0-9]/.test(val))         score++;
-        if (/[^A-Za-z0-9]/.test(val))  score++;
-        const colors = ['','#ef4444','#f97316','#eab308','#22c55e','#16a34a'];
-        const labels = ['','Muy débil','Débil','Media','Fuerte','Muy fuerte'];
-        const bar  = document.getElementById('passBar');
+        if (val.length >= 6) score++;
+        if (val.length >= 10) score++;
+        if (/[A-Z]/.test(val)) score++;
+        if (/[0-9]/.test(val)) score++;
+        if (/[^A-Za-z0-9]/.test(val)) score++;
+        const colors = ['', '#ef4444', '#f97316', '#eab308', '#22c55e', '#16a34a'];
+        const labels = ['', 'Muy débil', 'Débil', 'Media', 'Fuerte', 'Muy fuerte'];
+        const bar = document.getElementById('passBar');
         const hint = document.getElementById('passHint');
-        if (bar)  { bar.style.width = `${(score/5)*100}%`; bar.style.background = colors[score] ?? '#ef4444'; }
+        if (bar) { bar.style.width = `${(score / 5) * 100}%`; bar.style.background = colors[score] ?? '#ef4444'; }
         if (hint) hint.textContent = val.length ? (labels[score] ?? 'Muy débil') : 'Introduce una contraseña';
     }
 
@@ -105,12 +111,12 @@ export class AuthController {
     }
 
     _alert(msg, type) {
-        const id   = this.mode === 'login' ? 'loginAlert' : 'registerAlert';
-        const el   = document.getElementById(id);
+        const id = this.mode === 'login' ? 'loginAlert' : 'registerAlert';
+        const el = document.getElementById(id);
         if (!el) return;
         el.className = `alert alert-${type}`;
         el.innerHTML = msg;
-        el.hidden    = false;
+        el.hidden = false;
     }
 }
 
@@ -127,7 +133,7 @@ export class HomeController {
         if (session.loggedIn) document.getElementById('ctaSection')?.remove();
 
         const searchInput = document.getElementById('heroSearchInput');
-        const searchBtn   = document.getElementById('heroSearchBtn');
+        const searchBtn = document.getElementById('heroSearchBtn');
 
         searchBtn?.addEventListener('click', () => {
             const q = searchInput?.value.trim();
@@ -151,7 +157,7 @@ export class HomeController {
 // ================================================================
 export class ProfileController {
     constructor() {
-        this.userModel     = new UserModel();
+        this.userModel = new UserModel();
         this.wishlistModel = new WishlistModel();
     }
 
@@ -168,11 +174,11 @@ export class ProfileController {
         if (profile.status === 'fulfilled') {
             const u = profile.value;
             const initial = u.username?.[0]?.toUpperCase() ?? '?';
-            document.getElementById('profileAvatar').textContent      = initial;
-            document.getElementById('profileUsername').textContent     = u.username ?? '';
-            document.getElementById('editUsername').value              = u.username ?? '';
-            document.getElementById('editEmail').value                 = u.email ?? '';
-            document.getElementById('memberSince').value               = u.created_at ? new Date(u.created_at).toLocaleDateString('es-ES') : '';
+            document.getElementById('profileAvatar').textContent = initial;
+            document.getElementById('profileUsername').textContent = u.username ?? '';
+            document.getElementById('editUsername').value = u.username ?? '';
+            document.getElementById('editEmail').value = u.email ?? '';
+            document.getElementById('memberSince').value = u.created_at ? new Date(u.created_at).toLocaleDateString('es-ES') : '';
             const rb = document.getElementById('profileRoleBadge');
             if (rb) { rb.textContent = u.role === 'admin' ? '🛡 Admin' : '👤 Usuario'; rb.className = `role-badge role-badge--${u.role}`; }
         }
@@ -205,7 +211,7 @@ export class ProfileController {
 
         document.getElementById('changePassBtn')?.addEventListener('click', async () => {
             const cur = document.getElementById('currentPass').value;
-            const nw  = document.getElementById('newPass').value;
+            const nw = document.getElementById('newPass').value;
             const res = await this.userModel.changePassword(cur, nw);
             if (typeof showToast === 'function') showToast(res.message ?? (res.success ? 'Cambiado' : 'Error'));
         });
@@ -217,7 +223,7 @@ export class ProfileController {
 // ================================================================
 export class WishlistController {
     constructor() {
-        this.model   = new WishlistModel();
+        this.model = new WishlistModel();
         this.baseUrl = BASE_URL;
     }
 
@@ -257,7 +263,7 @@ export class WishlistController {
             });
         } catch {
             document.getElementById('wishlistLoading').hidden = true;
-            document.getElementById('wishlistEmpty').hidden   = false;
+            document.getElementById('wishlistEmpty').hidden = false;
         }
     }
 
@@ -268,8 +274,8 @@ export class WishlistController {
         if (res.success) {
             const card = document.getElementById(`wl-${slug}`);
             card.style.transition = 'opacity .3s, transform .3s';
-            card.style.opacity    = '0';
-            card.style.transform  = 'scale(.9)';
+            card.style.opacity = '0';
+            card.style.transform = 'scale(.9)';
             setTimeout(() => card.remove(), 300);
             if (typeof showToast === 'function') showToast('Juego eliminado de tu wishlist.');
         } else {
@@ -293,10 +299,10 @@ export class AdminController {
             ]);
             const stats = await statsRes.json();
             const users = await usersRes.json();
-            const apis  = await apisRes.json();
+            const apis = await apisRes.json();
 
-            document.getElementById('statUsers').textContent     = stats.total_users     ?? '–';
-            document.getElementById('statWishlists').textContent = stats.total_wishlist  ?? '–';
+            document.getElementById('statUsers').textContent = stats.total_users ?? '–';
+            document.getElementById('statWishlists').textContent = stats.total_wishlist ?? '–';
 
             this._renderUsers(users);
             this._renderApiStatus(apis);
@@ -308,9 +314,9 @@ export class AdminController {
 
     _renderUsers(users) {
         document.getElementById('usersLoading').hidden = true;
-        document.getElementById('usersTable').hidden   = false;
+        document.getElementById('usersTable').hidden = false;
         const tbody = document.getElementById('usersTableBody');
-        const me    = document.querySelector('meta[name="username"]')?.content;
+        const me = document.querySelector('meta[name="username"]')?.content;
 
         tbody.innerHTML = users.map(u => `
             <tr>
@@ -322,8 +328,8 @@ export class AdminController {
                 <td class="table-actions">
                     ${u.username !== me ? `
                         <select class="select-sm" data-user-id="${u.id}" onchange="window._adminChangeRole(this)">
-                            <option value="user"  ${u.role==='user'?'selected':''}>User</option>
-                            <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
+                            <option value="user"  ${u.role === 'user' ? 'selected' : ''}>User</option>
+                            <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
                         </select>
                         <button class="btn btn-danger btn-sm" onclick="window._adminDeleteUser(${u.id},'${u.username}')">🗑</button>
                     ` : '<span class="text-muted">(Tú)</span>'}
@@ -332,12 +338,12 @@ export class AdminController {
 
         window._adminDeleteUser = async (id, username) => {
             if (!confirm(`¿Eliminar a ${username}? Esta acción es irreversible.`)) return;
-            await fetch(`${this.baseUrl}/api/admin/delete/${id}`, { method:'POST' });
+            await fetch(`${this.baseUrl}/api/admin/delete/${id}`, { method: 'POST' });
             this.init();
         };
         window._adminChangeRole = async (sel) => {
             await fetch(`${this.baseUrl}/api/admin/role/${sel.dataset.userId}`, {
-                method:'POST', headers:{'Content-Type':'application/json'},
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ role: sel.value }),
             });
             if (typeof showToast === 'function') showToast('Rol actualizado.');
