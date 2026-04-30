@@ -65,7 +65,14 @@
             <!-- Capturas de pantalla -->
             <div id="screenshotsSection" class="screenshots-section" hidden>
                 <h2>📸 Capturas de pantalla</h2>
-                <div id="screenshotsGrid" class="screenshots-grid"></div>
+                <div class="carousel" id="screenshotsCarousel">
+                    <button class="carousel__btn carousel__btn--prev" id="carouselPrev" aria-label="Anterior">&#8249;</button>
+                    <div class="carousel__viewport">
+                        <div class="carousel__track" id="screenshotsTrack"></div>
+                    </div>
+                    <button class="carousel__btn carousel__btn--next" id="carouselNext" aria-label="Siguiente">&#8250;</button>
+                    <div class="carousel__dots" id="carouselDots"></div>
+                </div>
             </div>
 
         </div><!-- /gameContent -->

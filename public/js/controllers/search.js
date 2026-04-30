@@ -1,12 +1,16 @@
-import { GameModel } from '../models/GameModel.js';
+import { GameModel }     from '../models/GameModel.js';
+import { WishlistModel } from '../models/WishlistModel.js';
 
 export class SearchController {
     constructor() {
-        this.model   = new GameModel();
-        this.baseUrl = document.querySelector('meta[name="base-url"]')?.content ?? '';
-        this.query   = new URLSearchParams(window.location.search).get('q') ?? '';
-        this.page    = 1;
-        this.order   = '-rating';
+        this.model         = new GameModel();
+        this.baseUrl       = document.querySelector('meta[name="base-url"]')?.content ?? '';
+        this.query         = new URLSearchParams(window.location.search).get('q') ?? '';
+        this.page          = 1;
+        this.order         = '-rating';
+        this.loggedIn      = document.querySelector('meta[name="user-logged-in"]')?.content === 'true';
+        this.wishlistModel = this.loggedIn ? new WishlistModel() : null;
+        this.wishlistSlugs = new Set();
     }
 
     init() {
@@ -49,15 +53,17 @@ export class SearchController {
 
         try {
             const data = await this.model.search(this.query, this.page, this.order);
-            if (data?.error) { this._show('error'); return; }
+            if (data?.error) { this._show('error', data.error); return; }
             if (!data?.results?.length) { this._show('empty'); return; }
 
             document.getElementById('searchFilters').hidden = false;
             this._renderGames(data.results);
             this._renderPagination(this.page, Math.ceil((data.count ?? data.results.length) / 20));
             this._show('results');
-        } catch {
-            this._show('error');
+            if (this.loggedIn) this._applyWishlistHearts();
+        } catch (err) {
+            console.error('[GameSniper] Error buscando:', err);
+            this._show('error', err.message);
         }
     }
 
@@ -69,16 +75,26 @@ export class SearchController {
 
     _renderGames(games) {
         document.getElementById('gamesGrid').innerHTML = games.map(g => {
-            const img  = g.background_image ?? `${this.baseUrl}/img/no-image.svg`;
-            const slug = g.slug ?? '';
+            const img    = g.background_image ?? `${this.baseUrl}/img/no-image.svg`;
+            const slug   = g.slug ?? '';
+            const rating = g.rating ?? 0;
+            const heart  = this.loggedIn
+                ? `<button class="game-card__wishlist-btn" data-slug="${slug}" title="Wishlist">🤍</button>`
+                : '';
             return `
-            <article class="game-card" onclick="window.location='${this.baseUrl}/game/${slug}'">
+            <article class="game-card"
+                data-slug="${slug}"
+                data-name="${this._esc(g.name)}"
+                data-img="${this._esc(img)}"
+                data-rating="${rating}"
+                onclick="window.location='${this.baseUrl}/game/${slug}'">
                 <div class="game-card__img-wrap">
                     <img src="${img}" alt="${this._esc(g.name)}" loading="lazy"
                          onerror="this.src='${this.baseUrl}/img/no-image.svg'">
                     <div class="game-card__overlay">
                         <a href="${this.baseUrl}/game/${slug}" class="btn btn-primary btn-sm">Ver precios</a>
                     </div>
+                    ${heart}
                 </div>
                 <div class="game-card__body">
                     <h3 class="game-card__title">${this._esc(g.name)}</h3>
@@ -90,6 +106,55 @@ export class SearchController {
                 </div>
             </article>`;
         }).join('');
+    }
+
+    async _applyWishlistHearts() {
+        try {
+            const items = await this.wishlistModel.getAll();
+            this.wishlistSlugs = new Set(items.map(i => i.game_slug));
+        } catch {
+            this.wishlistSlugs = new Set();
+        }
+
+        document.querySelectorAll('.game-card__wishlist-btn').forEach(btn => {
+            const slug = btn.dataset.slug;
+            if (this.wishlistSlugs.has(slug)) {
+                btn.textContent = '❤️';
+                btn.classList.add('in-wishlist');
+            }
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                await this._toggleWishlistFromCard(btn);
+            });
+        });
+    }
+
+    async _toggleWishlistFromCard(btn) {
+        const slug    = btn.dataset.slug;
+        const article = btn.closest('[data-slug]');
+        const name    = article?.dataset.name ?? '';
+        const img     = article?.dataset.img  ?? '';
+        const rating  = parseFloat(article?.dataset.rating) || 0;
+
+        btn.disabled = true;
+        const inWishlist = this.wishlistSlugs.has(slug);
+        const result = inWishlist
+            ? await this.wishlistModel.remove(slug)
+            : await this.wishlistModel.add(slug, name, img, rating);
+
+        if (result.success) {
+            if (inWishlist) {
+                this.wishlistSlugs.delete(slug);
+                btn.textContent = '🤍';
+                btn.classList.remove('in-wishlist');
+            } else {
+                this.wishlistSlugs.add(slug);
+                btn.textContent = '❤️';
+                btn.classList.add('in-wishlist');
+            }
+        }
+        if (typeof showToast === 'function') showToast(result.message);
+        btn.disabled = false;
     }
 
     _renderPagination(current, total) {
@@ -104,7 +169,7 @@ export class SearchController {
         document.getElementById('nextBtn')?.addEventListener('click', () => { this.page++; this._runSearch(); window.scrollTo({top:0,behavior:'smooth'}); });
     }
 
-    _show(state) {
+    _show(state, msg = '') {
         const states = { loading: 'searchLoading', empty: 'searchEmpty', error: 'searchError', results: 'gamesGrid' };
         ['searchLoading','searchEmpty','searchError','gamesGrid','pagination'].forEach(id => {
             const el = document.getElementById(id);
@@ -116,6 +181,10 @@ export class SearchController {
         } else {
             const el = document.getElementById(states[state]);
             if (el) el.hidden = false;
+            if (state === 'error' && msg) {
+                const msgEl = document.getElementById('searchErrorMsg');
+                if (msgEl) msgEl.textContent = msg;
+            }
         }
     }
 

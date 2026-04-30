@@ -345,19 +345,58 @@ ul { list-style: none; }
 .price-cut { background: rgba(0,180,255,.2); color: var(--accent); padding: .1rem .4rem; border-radius: 4px; font-size: .75rem; font-weight: 700; }
 .price-card .btn { margin-top: auto; }
 
-/* Screenshots */
+/* Screenshots / Carousel */
 .screenshots-section h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: 1.25rem; }
-.screenshots-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: .75rem;
+
+.carousel { position: relative; width: 100%; user-select: none; }
+.carousel__viewport {
+  overflow: hidden;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
 }
-.screenshots-grid a img {
-  width: 100%; height: 160px; object-fit: cover;
-  border-radius: var(--radius); border: 1px solid var(--border);
-  transition: transform var(--transition), border-color var(--transition);
+.carousel__track {
+  display: flex;
+  transition: transform .35s ease;
 }
-.screenshots-grid a:hover img { transform: scale(1.02); border-color: var(--accent); }
+.carousel__slide {
+  min-width: 100%;
+  aspect-ratio: 16/9;
+}
+.carousel__slide a { display: block; width: 100%; height: 100%; }
+.carousel__slide img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.carousel__btn {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  background: rgba(0,0,0,.6); border: 1px solid rgba(255,255,255,.15);
+  color: #fff; width: 40px; height: 40px; border-radius: 50%;
+  font-size: 1.75rem; line-height: 1; cursor: pointer; z-index: 10;
+  transition: background var(--transition);
+  display: flex; align-items: center; justify-content: center;
+}
+.carousel__btn:hover { background: rgba(0,180,255,.75); }
+.carousel__btn--prev { left: .75rem; }
+.carousel__btn--next { right: .75rem; }
+.carousel__dots { display: flex; justify-content: center; gap: .45rem; margin-top: .75rem; }
+.carousel__dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--border); border: none; cursor: pointer; padding: 0;
+  transition: background var(--transition), transform var(--transition);
+}
+.carousel__dot.active { background: var(--accent); transform: scale(1.35); }
+
+/* Wishlist heart on game cards */
+.game-card__wishlist-btn {
+  position: absolute; top: .5rem; right: .5rem;
+  background: rgba(0,0,0,.65); border: none; border-radius: 50%;
+  width: 34px; height: 34px; font-size: 1rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0;
+  transition: opacity var(--transition), background var(--transition), transform var(--transition);
+  z-index: 2; line-height: 1;
+}
+.game-card:hover .game-card__wishlist-btn,
+.game-card__wishlist-btn.in-wishlist { opacity: 1; }
+.game-card__wishlist-btn:hover { background: rgba(239,68,68,.7); transform: scale(1.15); }
+.game-card__wishlist-btn.in-wishlist { background: rgba(239,68,68,.55); }
 
 /* ---------- AUTH FORMS --------------------------------------- */
 .auth-section { min-height: calc(100vh - var(--navbar-h)); display: flex; align-items: center; }
