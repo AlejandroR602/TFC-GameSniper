@@ -77,7 +77,7 @@ INSERT INTO `users` (`username`, `email`, `password`, `role`) VALUES
 (
   'admin',
   'admin@gamesniper.com',
-  '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+  '$2a$12$mcUrOnj4JTgU3K.ExLyXqOYfbRmGevLEwg5u5buh9GqozOiTcw50O',
   'admin'
 )
 ON DUPLICATE KEY UPDATE `id` = `id`;
