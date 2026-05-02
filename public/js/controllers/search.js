@@ -61,6 +61,7 @@ export class SearchController {
             this._renderPagination(this.page, Math.ceil((data.count ?? data.results.length) / 20));
             this._show('results');
             if (this.loggedIn) this._applyWishlistHearts();
+            else this._bindGuestHearts();
         } catch (err) {
             console.error('[GameSniper] Error buscando:', err);
             this._show('error', err.message);
@@ -78,9 +79,7 @@ export class SearchController {
             const img    = g.background_image ?? `${this.baseUrl}/img/no-image.svg`;
             const slug   = g.slug ?? '';
             const rating = g.rating ?? 0;
-            const heart  = this.loggedIn
-                ? `<button class="game-card__wishlist-btn" data-slug="${slug}" title="Wishlist">🤍</button>`
-                : '';
+            const heart = `<button class="game-card__wishlist-btn" data-slug="${slug}" title="Añadir a wishlist">🤍</button>`;
             return `
             <article class="game-card"
                 data-slug="${slug}"
@@ -106,6 +105,15 @@ export class SearchController {
                 </div>
             </article>`;
         }).join('');
+    }
+
+    _bindGuestHearts() {
+        document.querySelectorAll('.game-card__wishlist-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                window.location.href = `${this.baseUrl}/login`;
+            });
+        });
     }
 
     async _applyWishlistHearts() {
