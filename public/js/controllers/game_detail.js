@@ -58,11 +58,41 @@ export class GameDetailController {
         }
         if (igdb.cover?.url) document.getElementById('gameCover').src = igdb.cover.url;
         if (igdb.screenshots?.length) {
-            const grid = document.getElementById('screenshotsGrid');
-            grid.innerHTML = igdb.screenshots.slice(0,6).map(s => {
-                const url = (s.url.startsWith('//') ? 'https:' : '') + s.url.replace('t_thumb','t_screenshot_big');
-                return `<a href="${url}" target="_blank"><img src="${url}" alt="Screenshot" loading="lazy"></a>`;
-            }).join('');
+            const urls = igdb.screenshots.slice(0, 8).map(s =>
+                (s.url.startsWith('//') ? 'https:' : '') + s.url.replace('t_thumb', 't_screenshot_big')
+            );
+
+            const track = document.getElementById('screenshotsTrack');
+            track.innerHTML = urls.map(url =>
+                `<div class="carousel__slide">
+                    <a href="${url}" target="_blank" rel="noopener">
+                        <img src="${url}" alt="Screenshot" loading="lazy">
+                    </a>
+                </div>`
+            ).join('');
+
+            const dotsEl = document.getElementById('carouselDots');
+            dotsEl.innerHTML = urls.map((_, i) =>
+                `<button class="carousel__dot${i === 0 ? ' active' : ''}" data-index="${i}" aria-label="Captura ${i + 1}"></button>`
+            ).join('');
+
+            let current = 0;
+            const total = urls.length;
+
+            const goTo = (index) => {
+                current = (index + total) % total;
+                track.style.transform = `translateX(-${current * 100}%)`;
+                dotsEl.querySelectorAll('.carousel__dot').forEach((d, i) =>
+                    d.classList.toggle('active', i === current)
+                );
+            };
+
+            document.getElementById('carouselPrev').addEventListener('click', () => goTo(current - 1));
+            document.getElementById('carouselNext').addEventListener('click', () => goTo(current + 1));
+            dotsEl.querySelectorAll('.carousel__dot').forEach(d =>
+                d.addEventListener('click', () => goTo(Number(d.dataset.index)))
+            );
+
             document.getElementById('screenshotsSection').hidden = false;
         }
     }
