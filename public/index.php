@@ -74,6 +74,19 @@ match(true) {
     ($s0==='api' && $s1==='admin' && $s2==='delete')     => call_user_func(function() use ($s3) { header('Content-Type: application/json'); (new AdminController())->deleteUser((int)$s3); }),
     ($s0==='api' && $s1==='admin' && $s2==='role')       => call_user_func(function() use ($s3) { header('Content-Type: application/json'); (new AdminController())->changeRole((int)$s3); }),
 
+    // ── API: Admin – Comentarios (orden: específico → genérico) ──
+    ($s0==='api' && $s1==='admin' && $s2==='comments' && $s3==='approve') => call_user_func(function() { header('Content-Type: application/json'); (new AdminController())->approveComment(); }),
+    ($s0==='api' && $s1==='admin' && $s2==='comments' && $s3==='reject')  => call_user_func(function() { header('Content-Type: application/json'); (new AdminController())->rejectComment(); }),
+    ($s0==='api' && $s1==='admin' && $s2==='comments' && is_numeric($s3)) => call_user_func(function() use ($s3) { header('Content-Type: application/json'); (new AdminController())->deleteComment((int)$s3); }),
+    ($s0==='api' && $s1==='admin' && $s2==='comments')                    => call_user_func(function() { header('Content-Type: application/json'); (new AdminController())->apiComments(); }),
+
+    // ── API: Comentarios ──────────────────────────────────────
+    ($s0==='api' && $s1==='comments' && $s2==='add') => call_user_func(function() { header('Content-Type: application/json'); (new CommentController())->apiAdd(); }),
+    ($s0==='api' && $s1==='comments')                => call_user_func(function() { header('Content-Type: application/json'); (new CommentController())->apiGet(); }),
+
+    // ── API: Usuario – Comentarios propios ────────────────────
+    ($s0==='api' && $s1==='user' && $s2==='comments') => call_user_func(function() { header('Content-Type: application/json'); (new CommentController())->apiUserComments(); }),
+
     // ── 404 ───────────────────────────────────────────────────
     default => call_user_func(function() {
         http_response_code(404);

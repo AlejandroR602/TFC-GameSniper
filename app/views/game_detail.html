@@ -75,6 +75,41 @@
                 </div>
             </div>
 
+            <!-- Comentarios -->
+            <div class="comments-section">
+                <h2 class="comments-section__title">💬 Comentarios</h2>
+
+                <!-- Formulario (solo para usuarios logueados) -->
+                <div id="commentForm" class="comment-form" hidden>
+                    <textarea id="commentInput"
+                              class="comment-form__textarea"
+                              placeholder="Comparte tu opinión sobre este juego..."
+                              maxlength="1000"
+                              rows="3"></textarea>
+                    <div class="comment-form__footer">
+                        <span id="commentCharCount" class="comment-form__counter">0/1000</span>
+                        <button id="commentSubmitBtn" class="btn btn-primary btn-sm">Enviar comentario</button>
+                    </div>
+                </div>
+
+                <!-- Mensaje para no logueados -->
+                <div id="commentLoginMsg" class="comment-login-msg" hidden>
+                    <p>
+                        <a href="/login">Inicia sesión</a> para dejar un comentario sobre este juego.
+                    </p>
+                </div>
+
+                <!-- Lista de comentarios -->
+                <div id="commentsLoading" class="loading-state" style="padding:1.5rem 0">
+                    <div class="spinner spinner-sm"></div>
+                    <p>Cargando comentarios...</p>
+                </div>
+                <div id="commentsEmpty" class="comment-empty" hidden>
+                    <p>Aún no hay comentarios aprobados para este juego. ¡Sé el primero!</p>
+                </div>
+                <div id="commentsList" class="comments-list" hidden></div>
+            </div>
+
         </div><!-- /gameContent -->
     </div>
 </section>

@@ -1,10 +1,12 @@
 import { GameModel }     from '../models/GameModel.js';
 import { WishlistModel } from '../models/WishlistModel.js';
+import { CommentModel }  from '../models/CommentModel.js';
 
 export class GameDetailController {
     constructor() {
         this.gameModel     = new GameModel();
         this.wishlistModel = new WishlistModel();
+        this.commentModel  = new CommentModel();
         this.baseUrl       = document.querySelector('meta[name="base-url"]')?.content ?? '';
         this.loggedIn      = document.querySelector('meta[name="user-logged-in"]')?.content === 'true';
         this.slug          = window.location.pathname.split('/').filter(Boolean).pop();
@@ -35,6 +37,9 @@ export class GameDetailController {
             document.getElementById('gameLoading').hidden = true;
             document.getElementById('gameError').hidden   = false;
         }
+
+        // Comentarios (carga independiente del juego)
+        await this._initComments();
     }
 
     _renderRawg(g) {
@@ -135,5 +140,102 @@ export class GameDetailController {
         const btn = document.getElementById('wishlistBtn');
         btn.className   = this.inWishlist ? 'btn btn-outline' : 'btn btn-primary';
         btn.textContent = this.inWishlist ? '❤️ En tu wishlist' : '🤍 Añadir a wishlist';
+    }
+
+    // ── Comentarios ──────────────────────────────────────────────
+
+    async _initComments() {
+        // Mostrar u ocultar el formulario según si el usuario está logueado
+        const formEl     = document.getElementById('commentForm');
+        const loginMsgEl = document.getElementById('commentLoginMsg');
+        if (this.loggedIn) {
+            if (formEl)     formEl.hidden     = false;
+            if (loginMsgEl) loginMsgEl.hidden = true;
+        } else {
+            if (formEl)     formEl.hidden     = true;
+            if (loginMsgEl) loginMsgEl.hidden = false;
+        }
+
+        // Contador de caracteres
+        const textarea  = document.getElementById('commentInput');
+        const charCount = document.getElementById('commentCharCount');
+        if (textarea && charCount) {
+            textarea.addEventListener('input', () => {
+                charCount.textContent = `${textarea.value.length}/1000`;
+            });
+        }
+
+        // Botón enviar
+        document.getElementById('commentSubmitBtn')
+            ?.addEventListener('click', () => this._submitComment());
+
+        // Cargar comentarios existentes
+        await this._loadComments();
+    }
+
+    async _loadComments() {
+        const loadEl  = document.getElementById('commentsLoading');
+        const emptyEl = document.getElementById('commentsEmpty');
+        const listEl  = document.getElementById('commentsList');
+
+        try {
+            const comments = await this.commentModel.getByGame(this.slug);
+            if (loadEl) loadEl.hidden = true;
+
+            if (!Array.isArray(comments) || !comments.length) {
+                if (emptyEl) emptyEl.hidden = false;
+                return;
+            }
+
+            listEl.innerHTML = comments.map(c => `
+                <div class="comment-item">
+                    <div class="comment-item__header">
+                        <span class="comment-item__avatar">${c.username[0].toUpperCase()}</span>
+                        <strong class="comment-item__user">${this._esc(c.username)}</strong>
+                        <span class="comment-item__date">
+                            ${new Date(c.created_at).toLocaleDateString('es-ES')}
+                        </span>
+                    </div>
+                    <p class="comment-item__content">${this._esc(c.content)}</p>
+                </div>
+            `).join('');
+            listEl.hidden = false;
+        } catch (err) {
+            if (loadEl) loadEl.hidden = true;
+            console.error('[GameDetailController] _loadComments:', err);
+        }
+    }
+
+    async _submitComment() {
+        const textarea = document.getElementById('commentInput');
+        const btn      = document.getElementById('commentSubmitBtn');
+        const content  = textarea?.value.trim() ?? '';
+
+        if (!content) { if (typeof showToast === 'function') showToast('Escribe algo antes de enviar.'); return; }
+
+        btn.disabled = true;
+        try {
+            const result = await this.commentModel.add(
+                this.slug,
+                this.gameData?.name ?? document.getElementById('gameName')?.textContent ?? '',
+                content
+            );
+            if (typeof showToast === 'function') showToast(result.message);
+            if (result.success) {
+                textarea.value = '';
+                document.getElementById('commentCharCount').textContent = '0/1000';
+            }
+        } catch (err) {
+            if (typeof showToast === 'function') showToast('Error al enviar el comentario.');
+            console.error('[GameDetailController] _submitComment:', err);
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    _esc(str) {
+        const d = document.createElement('div');
+        d.textContent = String(str ?? '');
+        return d.innerHTML;
     }
 }
