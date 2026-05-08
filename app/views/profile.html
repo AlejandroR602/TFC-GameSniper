@@ -27,6 +27,10 @@
                     <a href="#security" class="profile-nav__link">🔒 Seguridad</a>
                     <a href="#history"  class="profile-nav__link">🕐 Historial</a>
                     <a id="navWishlist" href="#" class="profile-nav__link">❤️ Wishlist</a>
+                    <a href="#comments" class="profile-nav__link profile-nav__link--comments">
+                        💬 Mis Comentarios
+                        <span id="commentsBadge" class="notif-badge" hidden></span>
+                    </a>
                 </nav>
             </aside>
 
@@ -82,6 +86,25 @@
                     </div>
                     <ul class="history-list" id="historyList" hidden></ul>
                     <p class="text-muted" id="historyEmpty" hidden>Aún no has realizado búsquedas.</p>
+                </div>
+
+                <!-- Mis Comentarios (poblado por JS) -->
+                <div class="profile-card" id="comments">
+                    <h3 class="profile-card__title">
+                        💬 Mis Comentarios
+                        <span id="commentsBadgeCard" class="notif-badge" hidden></span>
+                    </h3>
+                    <p class="text-muted" style="margin-bottom:1rem;font-size:.85rem;">
+                        Aquí puedes ver todos tus comentarios y su estado de moderación.
+                        Los comentarios rechazados incluyen el motivo del rechazo.
+                    </p>
+                    <div id="commentsLoading" class="loading-state" style="padding:1rem 0">
+                        <div class="spinner spinner-sm"></div>
+                    </div>
+                    <div id="commentsList" hidden></div>
+                    <p class="text-muted" id="commentsEmpty" hidden>
+                        Aún no has escrito ningún comentario. ¡Ve a la página de un juego y comparte tu opinión!
+                    </p>
                 </div>
 
             </div>

@@ -8,7 +8,7 @@
 
         <div class="page-header">
             <h1>🛡 Panel de Administración</h1>
-            <p>Gestión de usuarios y estadísticas de GameSniper</p>
+            <p>Gestión de usuarios, comentarios y estadísticas de GameSniper</p>
         </div>
 
         <div id="adminAlert" hidden></div>
@@ -26,9 +26,43 @@
                 <div class="stat-card__label">Juegos en wishlists</div>
             </div>
             <div class="stat-card">
+                <div class="stat-card__icon">⏳</div>
+                <div class="stat-card__value" id="statPendingComments"></div>
+                <div class="stat-card__label">Comentarios pendientes</div>
+            </div>
+            <div class="stat-card">
                 <div class="stat-card__icon">🔌</div>
                 <div class="stat-card__value" id="statApis"></div>
                 <div class="stat-card__label">APIs conectadas</div>
+            </div>
+        </div>
+
+        <!-- Moderación de comentarios (poblada por JS) -->
+        <div class="admin-card">
+            <div class="admin-card__header">
+                <h2>💬 Moderación de comentarios</h2>
+            </div>
+            <div id="commentsLoading" class="loading-state" style="padding:2rem">
+                <div class="spinner"></div>
+            </div>
+            <p class="text-muted" id="commentsEmpty" style="padding:1.5rem" hidden>
+                No hay comentarios para moderar.
+            </p>
+            <div class="table-wrap" id="commentsTable" hidden>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Usuario</th>
+                            <th>Juego</th>
+                            <th>Comentario</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="commentsTableBody"></tbody>
+                </table>
             </div>
         </div>
 
@@ -69,6 +103,36 @@
 
     </div>
 </section>
+
+<!-- Modal: motivo de rechazo -->
+<div id="rejectModal" class="modal-overlay" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="rejectModalTitle">
+        <div class="modal__header">
+            <h3 class="modal__title" id="rejectModalTitle">❌ Rechazar comentario</h3>
+            <button class="modal__close" id="rejectModalClose" aria-label="Cerrar">✕</button>
+        </div>
+        <div class="modal__body">
+            <p class="modal__desc">
+                El usuario verá este motivo en la sección <strong>Mis Comentarios</strong> de su perfil.
+            </p>
+            <div class="form-group">
+                <label for="rejectReason">Motivo del rechazo <span class="text-danger">*</span></label>
+                <textarea id="rejectReason"
+                          class="modal__textarea"
+                          rows="3"
+                          maxlength="500"
+                          placeholder="Ej: Contenido inapropiado, lenguaje ofensivo, spam..."></textarea>
+                <span class="form-hint" id="rejectReasonError" style="color:var(--error);display:none">
+                    El motivo es obligatorio.
+                </span>
+            </div>
+        </div>
+        <div class="modal__footer">
+            <button id="rejectModalCancel"  class="btn btn-outline">Cancelar</button>
+            <button id="rejectModalConfirm" class="btn btn-danger">Confirmar rechazo</button>
+        </div>
+    </div>
+</div>
 
 <script type="module">
 import { AdminController } from './js/controllers/admin.js';

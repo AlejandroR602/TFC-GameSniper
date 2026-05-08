@@ -26,9 +26,11 @@ class AdminController {
         $this->requireAdmin();
         $userModel = new User();
         $wl        = new Wishlist();
+        $cm        = new Comment();
         echo json_encode([
-            'total_users'    => $userModel->count(),
-            'total_wishlist' => $wl->totalCount(),
+            'total_users'      => $userModel->count(),
+            'total_wishlist'   => $wl->totalCount(),
+            'pending_comments' => $cm->countPending(),
         ]);
     }
 
@@ -65,6 +67,43 @@ class AdminController {
         $data = json_decode(file_get_contents('php://input'), true);
         $role = $data['role'] ?? 'user';
         $ok   = (new User())->changeRole($id, $role);
+        echo json_encode(['success' => $ok]);
+    }
+
+    // ── JSON: listar todos los comentarios ────────────────────────
+    public function apiComments(): void {
+        $this->requireAdmin();
+        echo json_encode((new Comment())->getAllForAdmin());
+    }
+
+    // ── JSON: aprobar comentario ──────────────────────────────────
+    public function approveComment(): void {
+        $this->requireAdmin();
+        $data = json_decode(file_get_contents('php://input'), true);
+        $id   = (int)($data['id'] ?? 0);
+        if (!$id) { echo json_encode(['success' => false, 'message' => 'ID no válido.']); return; }
+        $ok = (new Comment())->approve($id);
+        echo json_encode(['success' => $ok]);
+    }
+
+    // ── JSON: rechazar comentario ─────────────────────────────────
+    public function rejectComment(): void {
+        $this->requireAdmin();
+        $data   = json_decode(file_get_contents('php://input'), true);
+        $id     = (int)($data['id']     ?? 0);
+        $reason = trim($data['reason'] ?? '');
+        if (!$id || !$reason) {
+            echo json_encode(['success' => false, 'message' => 'Debes indicar un motivo de rechazo.']);
+            return;
+        }
+        $ok = (new Comment())->reject($id, $reason);
+        echo json_encode(['success' => $ok]);
+    }
+
+    // ── JSON: eliminar comentario ─────────────────────────────────
+    public function deleteComment(int $id): void {
+        $this->requireAdmin();
+        $ok = (new Comment())->delete($id);
         echo json_encode(['success' => $ok]);
     }
 }
