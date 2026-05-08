@@ -11,7 +11,7 @@ function showToast(message, duration = 3000) {
     if (existing) existing.remove();
 
     const toast = document.createElement('div');
-    toast.className   = 'toast';
+    toast.className = 'toast';
     toast.textContent = message;
     document.body.appendChild(toast);
 
@@ -22,7 +22,7 @@ function showToast(message, duration = 3000) {
 // HAMBURGER MENU (móvil)
 // ----------------------------------------------------------------
 const hamburger = document.getElementById('hamburger');
-const navMenu   = document.getElementById('navMenu');
+const navMenu = document.getElementById('navMenu');
 if (hamburger && navMenu) {
     hamburger.addEventListener('click', () => {
         navMenu.classList.toggle('open');
@@ -52,9 +52,11 @@ if (profileLinks.length) {
     }, { rootMargin: '-40% 0px -50% 0px' });
 
     profileLinks.forEach(link => {
-        const target = document.querySelector(link.getAttribute('href'));
-        if (target) observer.observe(target);
-    });
+    const href = link.getAttribute('href');
+    if (!href || href === '#') return;
+    const target = document.querySelector(href);
+    if (target) observer.observe(target);
+});
 }
 
 // ----------------------------------------------------------------
@@ -107,13 +109,17 @@ document.addEventListener('keydown', (e) => {
 // Control del NAVBAR
 // ----------------------------------------------------------------
 const userMenu = document.querySelector('.navbar__user');
+if (userMenu) {
+    userMenu.addEventListener('click', (e) => {
+        e.stopPropagation(); // Siempre detener propagación
 
-userMenu.addEventListener('click', (e) => {
-  e.stopPropagation();
-  userMenu.classList.toggle('open');
-});
+        // Si el click fue en un enlace, dejar que el navegador navegue
+        if (e.target.closest('a')) return;
 
-// Cerrar al hacer click fuera
-document.addEventListener('click', () => {
-  userMenu.classList.remove('open');
-});
+        userMenu.classList.toggle('open');
+    });
+
+    document.addEventListener('click', () => {
+        userMenu.classList.remove('open');
+    });
+}
