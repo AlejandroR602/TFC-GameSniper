@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS `search_history` (
 -- ============================================================
 
 -- Usuario administrador por defecto
--- ⚠️  Cambia la contraseña INMEDIATAMENTE después del primer login.
+--
 --     Credenciales: admin@gamesniper.com / Admin1234!
 --     Hash generado con: password_hash('Admin1234!', PASSWORD_BCRYPT)
 INSERT INTO `users` (`username`, `email`, `password`, `role`) VALUES
