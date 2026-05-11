@@ -134,6 +134,47 @@
     </div>
 </div>
 
+<!-- Modal: cambio de rol -->
+<div id="roleModal" class="modal-overlay" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="roleModalTitle">
+        <div class="modal__header">
+            <h3 class="modal__title" id="roleModalTitle">🔄 Cambiar rol de usuario</h3>
+            <button class="modal__close" id="roleModalClose" aria-label="Cerrar">✕</button>
+        </div>
+        <div class="modal__body">
+            <p class="modal__desc">
+                El usuario verá este motivo en la sección <strong>Mis Comentarios</strong> de su perfil.
+            </p>
+            <div class="form-group">
+                <label for="roleModalRole">Nuevo rol <span class="text-danger">*</span></label>
+                <select id="roleModalRole" class="modal__select">
+                    <option value="user">Usuario</option>
+                    <option value="admin">Administrador</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal__footer">
+            <button id="roleModalCancel"  class="btn btn-outline">Cancelar</button>
+            <button id="roleModalConfirm" class="btn btn-primary">Confirmar cambio de rol</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Eliminar usuario -->
+<div id="deleteModal" class="modal-overlay" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
+        <div class="modal__header">
+            <h3 class="modal__title" id="deleteModalTitle">¿ Seguro que deseas eliminar usuario ?</h3>
+            <button class="modal__close" id="deleteModalClose" aria-label="Cerrar">✕</button>
+        </div>
+        <div class="modal__footer">
+            <button id="deleteModalCancel"  class="btn btn-outline">Cancelar</button>
+            <button id="deleteModalConfirm" class="btn btn-danger">Confirmar eliminación</button>
+        </div>
+    </div>
+</div>
+
+
 <script type="module">
 import { AdminController } from './js/controllers/admin.js';
 new AdminController().init();

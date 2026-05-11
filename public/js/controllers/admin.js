@@ -4,6 +4,12 @@ const BASE_URL = document.querySelector('meta[name="base-url"]').content;
 // ID del comentario pendiente de rechazar (estado del modal)
 let _pendingRejectId = null;
 
+// ID del usuario al que se le cambia el rol
+let _pendingUserChangeId = null;
+
+// ID del usuario al que se va a eliminar
+let _pendingUserDeleteId = null;
+
 //admin controller
 export class AdminController {
     async init() {
@@ -17,19 +23,33 @@ export class AdminController {
     }
 
     _bindModalEvents() {
-        const modal   = document.getElementById('rejectModal');
-        const close   = () => AdminController._closeRejectModal();
+        const closeReject = () => { document.getElementById('rejectModal').hidden = true; _pendingRejectId = null; };
+        const closeRole = () => { document.getElementById('roleModal').hidden = true; _pendingUserChangeId = null; };
+        const closeDelete = () => { document.getElementById('deleteModal').hidden = true; _pendingUserDeleteId = null; };
 
-        document.getElementById('rejectModalClose')  ?.addEventListener('click', close);
-        document.getElementById('rejectModalCancel') ?.addEventListener('click', close);
+        document.getElementById('rejectModalClose')?.addEventListener('click', closeReject);
+        document.getElementById('rejectModalCancel')?.addEventListener('click', closeReject);
         document.getElementById('rejectModalConfirm')?.addEventListener('click', () => AdminController._confirmReject());
 
-        // Cerrar al pulsar fuera del cuadro
-        modal?.addEventListener('click', e => { if (e.target === modal) close(); });
+        document.getElementById('roleModalClose')?.addEventListener('click', closeRole);
+        document.getElementById('roleModalCancel')?.addEventListener('click', closeRole);
+        document.getElementById('roleModalConfirm')?.addEventListener('click', () => AdminController._confirmRoleChange());
+
+        document.getElementById('deleteModalClose')?.addEventListener('click', closeDelete);
+        document.getElementById('deleteModalCancel')?.addEventListener('click', closeDelete);
+        document.getElementById('deleteModalConfirm')?.addEventListener('click', () => AdminController._confirmDelete());
+
+        document.getElementById('rejectModal')?.addEventListener('click', e => { if (e.target === e.currentTarget) closeReject(); });
+        document.getElementById('roleModal')?.addEventListener('click', e => { if (e.target === e.currentTarget) closeRole(); });
+        document.getElementById('deleteModal')?.addEventListener('click', e => { if (e.target === e.currentTarget) closeDelete(); });
 
         // Cerrar con Escape
         document.addEventListener('keydown', e => {
-            if (e.key === 'Escape' && modal && !modal.hidden) close();
+            if (e.key === 'Escape') {
+                if (!document.getElementById('rejectModal')?.hidden) closeReject();
+                if (!document.getElementById('roleModal')?.hidden) closeRole();
+                if (!document.getElementById('deleteModal')?.hidden) closeDelete();
+            }
         });
     }
 
@@ -46,7 +66,7 @@ export class AdminController {
             const res = await fetch(`${BASE_URL}/api/admin/stats`);
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const data = await res.json();
-            document.getElementById('statUsers').textContent     = data.total_users;
+            document.getElementById('statUsers').textContent = data.total_users;
             document.getElementById('statWishlists').textContent = data.total_wishlist;
             const pendingEl = document.getElementById('statPendingComments');
             if (pendingEl) pendingEl.textContent = data.pending_comments ?? 0;
@@ -58,7 +78,7 @@ export class AdminController {
 
     async loadUsers() {
         try {
-            const res   = await fetch(`${BASE_URL}/api/admin/users`);
+            const res = await fetch(`${BASE_URL}/api/admin/users`);
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const users = await res.json();
 
@@ -78,7 +98,7 @@ export class AdminController {
             `).join('');
 
             document.getElementById('usersLoading').hidden = true;
-            document.getElementById('usersTable').hidden   = false;
+            document.getElementById('usersTable').hidden = false;
         } catch (err) {
             document.getElementById('usersLoading').hidden = true;
             this.showAlert('Error al cargar la lista de usuarios.');
@@ -88,7 +108,7 @@ export class AdminController {
 
     async loadApiStatus() {
         try {
-            const res  = await fetch(`${BASE_URL}/api/admin/api-status`);
+            const res = await fetch(`${BASE_URL}/api/admin/api-status`);
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const apis = await res.json();
 
@@ -108,13 +128,13 @@ export class AdminController {
     // ── Moderación de comentarios ────────────────────────────────
 
     async loadComments() {
-        const loadEl  = document.getElementById('commentsLoading');
+        const loadEl = document.getElementById('commentsLoading');
         const tableEl = document.getElementById('commentsTable');
         const emptyEl = document.getElementById('commentsEmpty');
         if (!loadEl) return;
 
         try {
-            const res      = await fetch(`${BASE_URL}/api/admin/comments`);
+            const res = await fetch(`${BASE_URL}/api/admin/comments`);
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const comments = await res.json();
 
@@ -175,10 +195,10 @@ export class AdminController {
 
     static async approveComment(id) {
         try {
-            const res  = await fetch(`${BASE_URL}/api/admin/comments/approve`, {
-                method:  'POST',
+            const res = await fetch(`${BASE_URL}/api/admin/comments/approve`, {
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body:    JSON.stringify({ id }),
+                body: JSON.stringify({ id }),
             });
             const data = await res.json();
             if (data.success) location.reload();
@@ -191,25 +211,19 @@ export class AdminController {
 
     static rejectComment(id) {
         _pendingRejectId = id;
-        const modal    = document.getElementById('rejectModal');
-        const textarea = document.getElementById('rejectReason');
-        const errMsg   = document.getElementById('rejectReasonError');
-        if (textarea) { textarea.value = ''; textarea.classList.remove('input-error'); }
-        if (errMsg)   errMsg.style.display = 'none';
-        if (modal)    modal.hidden = false;
-        setTimeout(() => textarea?.focus(), 50);
-    }
-
-    static _closeRejectModal() {
         const modal = document.getElementById('rejectModal');
-        if (modal) modal.hidden = true;
-        _pendingRejectId = null;
+        const textarea = document.getElementById('rejectReason');
+        const errMsg = document.getElementById('rejectReasonError');
+        if (textarea) { textarea.value = ''; textarea.classList.remove('input-error'); }
+        if (errMsg) errMsg.style.display = 'none';
+        if (modal) modal.hidden = false;
+        setTimeout(() => textarea?.focus(), 50);
     }
 
     static async _confirmReject() {
         const textarea = document.getElementById('rejectReason');
-        const errMsg   = document.getElementById('rejectReasonError');
-        const reason   = textarea?.value.trim() ?? '';
+        const errMsg = document.getElementById('rejectReasonError');
+        const reason = textarea?.value.trim() ?? '';
 
         if (!reason) {
             textarea?.classList.add('input-error');
@@ -223,10 +237,10 @@ export class AdminController {
         if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = 'Rechazando...'; }
 
         try {
-            const res  = await fetch(`${BASE_URL}/api/admin/comments/reject`, {
-                method:  'POST',
+            const res = await fetch(`${BASE_URL}/api/admin/comments/reject`, {
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body:    JSON.stringify({ id, reason }),
+                body: JSON.stringify({ id, reason }),
             });
             const data = await res.json();
             if (data.success) {
@@ -246,7 +260,7 @@ export class AdminController {
     static async deleteComment(id) {
         if (!confirm('¿Eliminar este comentario definitivamente?')) return;
         try {
-            const res  = await fetch(`${BASE_URL}/api/admin/comments/${id}`, { method: 'DELETE' });
+            const res = await fetch(`${BASE_URL}/api/admin/comments/${id}`, { method: 'DELETE' });
             const data = await res.json();
             if (data.success) location.reload();
             else alert(data.message ?? 'No se pudo eliminar el comentario.');
@@ -258,34 +272,77 @@ export class AdminController {
 
     // ── Usuarios ─────────────────────────────────────────────────
 
-    static async deleteUser(id) {
-        if (!confirm('¿Eliminar este usuario?')) return;
+    // Abrir modal de eliminar usuario
+    static deleteUser(id) {
+        _pendingUserDeleteId = id;
+        const modal = document.getElementById('deleteModal');
+        if (modal) modal.hidden = false;
+    }
+
+    // Abrir modal de cambio de rol
+    static changeRole(id) {
+        _pendingUserChangeId = id;
+        const modal = document.getElementById('roleModal');
+        if (modal) modal.hidden = false;
+    }
+
+    // Confirmar eliminación (usando la variable correcta)
+    static async _confirmDelete() {
+        const id = _pendingUserDeleteId;
+        const confirmBtn = document.getElementById('deleteModalConfirm');
+        if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = 'Eliminando...'; }
+
         try {
-            const res  = await fetch(`${BASE_URL}/api/admin/delete/${id}`, { method: 'DELETE' });
+            const res = await fetch(`${BASE_URL}/api/admin/delete/${id}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id }),
+            });
             const data = await res.json();
-            if (data.success) location.reload();
-            else alert(data.message ?? 'No se pudo eliminar el usuario.');
+            if (data.success) {
+                AdminController._closeDeleteModal();
+                location.reload();
+            } else {
+                if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = 'Confirmar eliminación'; }
+                alert(data.message ?? 'No se pudo eliminar el usuario.');
+            }
         } catch (err) {
+            if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = 'Confirmar eliminación'; }
             alert('Error de conexión al eliminar el usuario.');
-            console.error('[AdminController] deleteUser:', err);
         }
     }
 
-    static async changeRole(id) {
-        const role = prompt('Nuevo rol (user / admin):');
-        if (!role) return;
+    static async _confirmRoleChange() {
+        const id = _pendingUserChangeId;
+        const role = document.getElementById('roleModalRole')?.value;
+
+        if (!role) {
+            alert('Por favor selecciona un rol.');
+            return;
+        }
+
+        const confirmBtn = document.getElementById('roleModalConfirm');
+        if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = 'Cambiando rol...'; }
+
         try {
-            const res  = await fetch(`${BASE_URL}/api/admin/role/${id}`, {
-                method:  'POST',
+            const res = await fetch(`${BASE_URL}/api/admin/role/${id}`, {
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body:    JSON.stringify({ role })
+                body: JSON.stringify({ id, role }),
             });
             const data = await res.json();
-            if (data.success) location.reload();
-            else alert(data.message ?? 'No se pudo cambiar el rol.');
+            if (data.success) {
+                document.getElementById('roleModal').hidden = true;
+                _pendingUserChangeId = null;
+                location.reload();
+            } else {
+                if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = 'Confirmar cambio de rol'; }
+                alert(data.message ?? 'No se pudo cambiar el rol.');
+            }
         } catch (err) {
+            if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = 'Confirmar cambio de rol'; }
             alert('Error de conexión al cambiar el rol.');
-            console.error('[AdminController] changeRole:', err);
+            console.error('[AdminController] _confirmRoleChange:', err);
         }
     }
 }
