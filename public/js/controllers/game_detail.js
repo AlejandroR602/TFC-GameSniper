@@ -19,14 +19,13 @@ export class GameDetailController {
             const { rawg, igdb, prices } = await this.gameModel.loadFullGameData(this.slug);
             this.gameData = rawg;
 
-            this._renderRawg(rawg);
+            this._renderRawg(rawg, igdb);
             if (igdb) this._renderIgdb(igdb);
             this._renderPrices(prices);
 
             document.getElementById('gameLoading').hidden = true;
             document.getElementById('gameContent').hidden = false;
 
-            // Comprobar wishlist si está logueado
             if (this.loggedIn) {
                 this.inWishlist = await this.wishlistModel.check(this.slug);
                 this._updateWishlistBtn();
@@ -38,33 +37,73 @@ export class GameDetailController {
             document.getElementById('gameError').hidden   = false;
         }
 
-        // Comentarios (carga independiente del juego)
         await this._initComments();
     }
 
-    _renderRawg(g) {
+    // ------------------------------------------------------------
+    // RENDER RAWG + RATING UNIFICADO
+    // ------------------------------------------------------------
+    _renderRawg(g, igdb) {
         document.getElementById('gameName').textContent = g.name;
         document.getElementById('gameCover').src        = g.background_image ?? `${this.baseUrl}/img/no-image.svg`;
         document.getElementById('gameCover').alt        = g.name;
         document.getElementById('gameBackdrop').style.backgroundImage = `url('${g.background_image ?? ''}')`;
 
-        if (g.rating) document.getElementById('gameRating').innerHTML = `⭐ <strong>${g.rating.toFixed(1)}</strong>/5`;
-        if (g.metacritic) document.getElementById('gameRating').innerHTML += ` &nbsp;<span class="badge badge-meta">${g.metacritic}</span>`;
-        if (g.released)   document.getElementById('gameRelease').textContent = `📅 ${new Date(g.released).toLocaleDateString('es-ES')}`;
-        if (g.genres?.length) document.getElementById('gameGenres').innerHTML = g.genres.map(x => `<span class="tag">${x.name}</span>`).join('');
-        if (g.platforms?.length) document.getElementById('gamePlatforms').innerHTML = g.platforms.slice(0,4).map(p => `<span class="platform-tag">${p.platform.name}</span>`).join('');
+        // ⭐ RATING UNIFICADO 0–100
+        if (g.rating_final != null) {
+            document.getElementById('gameRating').innerHTML =
+                `⭐ <strong>${g.rating_final}</strong>/100`;
+        } else {
+            document.getElementById('gameRating').innerHTML = `⭐ N/D`;
+        }
+
+        // (Opcional) Desglose RAWG / IGDB / Metacritic
+        const breakdownEl = document.getElementById('ratingBreakdown');
+        if (breakdownEl) {
+            breakdownEl.innerHTML = `
+                <small>
+                    RAWG: ${g.rating ? g.rating.toFixed(1) + '/5' : 'N/D'} |
+                    IGDB: ${igdb?.rating ?? 'N/D'} |
+                    Metacritic: ${g.metacritic ?? 'N/D'}
+                </small>
+            `;
+        }
+
+        if (g.released)
+            document.getElementById('gameRelease').textContent =
+                `📅 ${new Date(g.released).toLocaleDateString('es-ES')}`;
+
+        if (g.genres?.length)
+            document.getElementById('gameGenres').innerHTML =
+                g.genres.map(x => `<span class="tag">${x.name}</span>`).join('');
+
+        if (g.platforms?.length)
+            document.getElementById('gamePlatforms').innerHTML =
+                g.platforms.slice(0,4).map(p => `<span class="platform-tag">${p.platform.name}</span>`).join('');
     }
 
+    // ------------------------------------------------------------
+    // IGDB
+    // ------------------------------------------------------------
     _renderIgdb(igdb) {
-        if (igdb.summary) document.getElementById('gameSummary').textContent = igdb.summary;
+        if (igdb.summary)
+            document.getElementById('gameSummary').textContent = igdb.summary;
+
         if (igdb.involved_companies?.length) {
-            const devs = igdb.involved_companies.map(c => c.company?.name).filter(Boolean).join(', ');
+            const devs = igdb.involved_companies
+                .map(c => c.company?.name)
+                .filter(Boolean)
+                .join(', ');
             document.getElementById('gameDev').textContent = `🏢 ${devs}`;
         }
-        if (igdb.cover?.url) document.getElementById('gameCover').src = igdb.cover.url;
+
+        if (igdb.cover?.url)
+            document.getElementById('gameCover').src = igdb.cover.url;
+
         if (igdb.screenshots?.length) {
             const urls = igdb.screenshots.slice(0, 8).map(s =>
-                (s.url.startsWith('//') ? 'https:' : '') + s.url.replace('t_thumb', 't_screenshot_big')
+                (s.url.startsWith('//') ? 'https:' : '') +
+                s.url.replace('t_thumb', 't_screenshot_big')
             );
 
             const track = document.getElementById('screenshotsTrack');
@@ -102,6 +141,9 @@ export class GameDetailController {
         }
     }
 
+    // ------------------------------------------------------------
+    // PRECIOS
+    // ------------------------------------------------------------
     _renderPrices(data) {
         document.getElementById('pricesLoading').hidden = true;
         const deals = data?.deals ?? [];
@@ -124,14 +166,28 @@ export class GameDetailController {
         }).join('');
     }
 
+    // ------------------------------------------------------------
+    // WISHLIST — ahora guarda rating_final
+    // ------------------------------------------------------------
     async _toggleWishlist() {
         if (!this.loggedIn) { window.location.href = `${this.baseUrl}/login`; return; }
         const btn = document.getElementById('wishlistBtn');
         btn.disabled = true;
+
         const result = this.inWishlist
             ? await this.wishlistModel.remove(this.slug)
-            : await this.wishlistModel.add(this.slug, this.gameData?.name ?? '', this.gameData?.background_image ?? '', this.gameData?.rating ?? 0);
-        if (result.success) { this.inWishlist = !this.inWishlist; this._updateWishlistBtn(); }
+            : await this.wishlistModel.add(
+                this.slug,
+                this.gameData?.name ?? '',
+                this.gameData?.background_image ?? '',
+                this.gameData?.rating_final ?? 0   // ⭐ AHORA GUARDAMOS EL RATING UNIFICADO
+            );
+
+        if (result.success) {
+            this.inWishlist = !this.inWishlist;
+            this._updateWishlistBtn();
+        }
+
         if (typeof showToast === 'function') showToast(result.message);
         btn.disabled = false;
     }
@@ -142,10 +198,10 @@ export class GameDetailController {
         btn.textContent = this.inWishlist ? '❤️ En tu wishlist' : '🤍 Añadir a wishlist';
     }
 
-    // ── Comentarios ──────────────────────────────────────────────
-
+    // ------------------------------------------------------------
+    // COMENTARIOS
+    // ------------------------------------------------------------
     async _initComments() {
-        // Mostrar u ocultar el formulario según si el usuario está logueado
         const formEl     = document.getElementById('commentForm');
         const loginMsgEl = document.getElementById('commentLoginMsg');
         if (this.loggedIn) {
@@ -156,7 +212,6 @@ export class GameDetailController {
             if (loginMsgEl) loginMsgEl.hidden = false;
         }
 
-        // Contador de caracteres
         const textarea  = document.getElementById('commentInput');
         const charCount = document.getElementById('commentCharCount');
         if (textarea && charCount) {
@@ -165,11 +220,9 @@ export class GameDetailController {
             });
         }
 
-        // Botón enviar
         document.getElementById('commentSubmitBtn')
             ?.addEventListener('click', () => this._submitComment());
 
-        // Cargar comentarios existentes
         await this._loadComments();
     }
 

@@ -1,9 +1,9 @@
 /**
  * MODEL: WishlistModel (JavaScript)
  * Gestiona la lista de deseos del usuario.
- * Se comunica con los endpoints PHP que acceden a MySQL.
+ * Ahora soporta rating_final (0–100) como valor estándar.
  */
- export class WishlistModel {
+export class WishlistModel {
     constructor() {
         this.baseUrl   = document.querySelector('meta[name="base-url"]')?.content ?? '';
         this.csrfToken = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
@@ -30,12 +30,19 @@
 
     // ----------------------------------------------------------------
     // Añadir un juego a la wishlist
+    // rating ahora es rating_final (0–100)
     // ----------------------------------------------------------------
-    async add(slug, name, image, rating = 0) {
+    async add(slug, name, image, rating_final = 0) {
         const res = await fetch(`${this.baseUrl}/api/wishlist/add`, {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
-            body:    JSON.stringify({ slug, name, image, rating, csrf_token: this.csrfToken }),
+            body:    JSON.stringify({
+                slug,
+                name,
+                image,
+                rating: rating_final,   // ⭐ Enviamos rating unificado
+                csrf_token: this.csrfToken
+            }),
         });
         return await res.json();
     }

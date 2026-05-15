@@ -84,35 +84,41 @@ export class HomeController {
         track.innerHTML = games.map(g => {
             const img = g.background_image ?? `${this.baseUrl}/img/no-image.svg`;
             const slug = g.slug ?? '';
+
+            // ⭐ Rating unificado 0–100
+            const rating = g.rating ? (g.rating * 20).toFixed(0) : (g.metacritic ?? null);
+
             return `
-        <article class="game-card" onclick="window.location='${this.baseUrl}/game/${slug}'"
-                 data-name="${this._esc(g.name)}">
-            <div class="game-card__img-wrap">
-                <img src="${img}" alt="${this._esc(g.name)}" loading="lazy"
-                     onerror="this.src='${this.baseUrl}/img/no-image.svg'">
-                <div class="game-card__overlay">
-                    <a href="${this.baseUrl}/game/${slug}" class="btn btn-primary btn-sm">Ver precios</a>
+            <article class="game-card" onclick="window.location='${this.baseUrl}/game/${slug}'"
+                    data-name="${this._esc(g.name)}">
+                <div class="game-card__img-wrap">
+                    <img src="${img}" alt="${this._esc(g.name)}" loading="lazy"
+                        onerror="this.src='${this.baseUrl}/img/no-image.svg'">
+                    <div class="game-card__overlay">
+                        <a href="${this.baseUrl}/game/${slug}" class="btn btn-primary btn-sm">Ver precios</a>
+                    </div>
                 </div>
-            </div>
-            <div class="game-card__body">
-                <h3 class="game-card__title">${this._esc(g.name)}</h3>
-                <div class="game-card__meta">
-                    ${g.rating ? `<span>⭐ ${g.rating.toFixed(1)}</span>` : ''}
-                    ${g.metacritic ? `<span class="badge badge-meta">${g.metacritic}</span>` : ''}
+                <div class="game-card__body">
+                    <h3 class="game-card__title">${this._esc(g.name)}</h3>
+                    <div class="game-card__meta">
+                        ${rating !== null 
+                            ? `<span class="star-rating">⭐ ${rating}/100</span>` 
+                            : `<span class="no-rating">Sin valoración</span>`}
+                    </div>
+                    ${g.genres?.length
+                        ? `<div class="game-card__tags">
+                            ${g.genres.slice(0, 2).map(x => `<span class="tag">${x.name}</span>`).join('')}
+                        </div>`
+                        : ''}
+                    <div class="game-card__price" data-loaded="false">
+                        <span class="price-label">Desde</span>
+                        <span class="price-value">—</span>
+                    </div>
                 </div>
-                ${g.genres?.length
-                    ? `<div class="game-card__tags">
-                        ${g.genres.slice(0, 2).map(x => `<span class="tag">${x.name}</span>`).join('')}
-                       </div>`
-                    : ''}
-                <div class="game-card__price" data-loaded="false">
-                    <span class="price-label">Desde</span>
-                    <span class="price-value">—</span>
-                </div>
-            </div>
-        </article>`;
+            </article>`;
         }).join('');
-        this._bindPriceHover(); // ← añade esto
+
+        this._bindPriceHover();
     }
 
     _esc(s) {

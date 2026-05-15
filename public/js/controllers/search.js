@@ -41,6 +41,9 @@ export class SearchController {
                 this._runSearch();
             });
         });
+
+        const filterRated = document.getElementById('filterRated');
+        filterRated?.addEventListener('change', () => this._runSearch());
     }
 
     _onSearch() {
@@ -62,6 +65,37 @@ export class SearchController {
             if (!data?.results?.length) { this._show('empty'); return; }
 
             document.getElementById('searchFilters').hidden = false;
+            
+           // ORDENAR POR VALORACIÓN (si el usuario ha elegido ese filtro)
+            if (this.order === 'rating') {
+                data.results.sort((a, b) => {
+                    // Normalizamos rating RAWG a 0–100
+                    const ra = a.rating ? a.rating * 20 : null;
+                    const rb = b.rating ? b.rating * 20 : null;
+
+                    // Si tienen metacritic, lo usamos como respaldo
+                    const ma = a.metacritic ?? null;
+                    const mb = b.metacritic ?? null;
+
+                    // Valor final para ordenar
+                    const va = ra ?? ma ?? -1;
+                    const vb = rb ?? mb ?? -1;
+
+                    return vb - va; // primero los que tienen valoración
+                });
+            }
+
+            // ⭐ FILTRO: solo juegos con valoración real
+            const filterRated = document.getElementById('filterRated');
+            if (filterRated?.checked) {
+                data.results = data.results.filter(g => {
+                    const hasRawg = g.rating && g.rating > 0;
+                    const hasMeta = g.metacritic && g.metacritic > 0;
+                    return hasRawg || hasMeta;
+                });
+            }
+
+            
             this._renderGames(data.results);
             this._renderPagination(this.page, Math.ceil((data.count ?? data.results.length) / 20));
             this._show('results');
@@ -83,7 +117,7 @@ export class SearchController {
         document.getElementById('gamesGrid').innerHTML = games.map(g => {
             const img    = g.background_image ?? `${this.baseUrl}/img/no-image.svg`;
             const slug   = g.slug ?? '';
-            const rating = g.rating ?? 0;
+            const rating = g.rating ? (g.rating * 20).toFixed(0) : (g.metacritic ?? null);
             const heart = `<button class="game-card__wishlist-btn" data-slug="${slug}" title="Añadir a wishlist">🤍</button>`;
             return `
             <article class="game-card"
@@ -103,8 +137,9 @@ export class SearchController {
                 <div class="game-card__body">
                     <h3 class="game-card__title">${this._esc(g.name)}</h3>
                     <div class="game-card__meta">
-                        ${g.rating ? `<span>⭐ ${g.rating.toFixed(1)}</span>` : ''}
-                        ${g.metacritic ? `<span class="badge badge-meta">${g.metacritic}</span>` : ''}
+                    ${rating !== null 
+                        ? `<span class="star-rating">⭐ ${rating}/100</span>` 
+                        : `<span class="no-rating">Sin valoración</span>`}
                     </div>
                     ${g.genres?.length ? `<div class="game-card__tags">${g.genres.slice(0, 2).map(x => `<span class="tag">${x.name}</span>`).join('')}</div>` : ''}
                     <div class="game-card__price" data-loaded="false">

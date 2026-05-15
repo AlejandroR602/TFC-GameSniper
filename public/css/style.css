@@ -261,7 +261,6 @@ ul { list-style: none; }
 /* ---------- BADGES & TAGS ------------------------------------ */
 .tag { background: var(--surface3); border: 1px solid var(--border); color: var(--text-muted); padding: .15rem .55rem; border-radius: 20px; font-size: .75rem; }
 .badge         { padding: .15rem .55rem; border-radius: 4px; font-size: .75rem; font-weight: 700; }
-.badge-meta    { background: #3c6e47; color: #a7f3c0; }
 .badge-best    { background: rgba(0,180,255,.15); color: var(--accent); border: 1px solid rgba(0,180,255,.3); border-radius: 20px; font-size: .75rem; padding: .15rem .55rem; }
 .platform-tag  { background: var(--surface3); border: 1px solid var(--border); color: var(--text-muted); padding: .15rem .55rem; border-radius: 4px; font-size: .75rem; }
 .role-badge    { padding: .2rem .65rem; border-radius: 20px; font-size: .75rem; font-weight: 600; }
@@ -864,4 +863,27 @@ ul { list-style: none; }
   .footer__inner    { grid-template-columns: 1fr; }
   .games-grid       { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
   .prices-grid      { grid-template-columns: 1fr 1fr; }
+}
+
+.filter-extra {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: .3rem .85rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-size: .8rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.filter-extra:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.filter-extra input {
+    transform: scale(1.1);
 }

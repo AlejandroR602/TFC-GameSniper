@@ -2,6 +2,7 @@
 /**
  * MODEL: Wishlist
  * Gestiona la lista de deseos de cada usuario.
+ * Ahora soporta game_rating en escala 0–100 (rating unificado).
  */
 class Wishlist {
     private Database $db;
@@ -10,15 +11,22 @@ class Wishlist {
         $this->db = Database::getInstance();
     }
 
+    /**
+     * Añadir un juego a la wishlist.
+     * $rating ahora representa el rating unificado 0–100.
+     */
     public function add(int $userId, string $slug, string $name, string $image, float $rating = 0): array {
         if ($this->has($userId, $slug)) {
             return ['success' => false, 'message' => 'El juego ya está en tu lista.'];
         }
+
+        // Guardamos rating_final directamente en game_rating
         $this->db->execute(
             'INSERT INTO wishlist (user_id, game_slug, game_name, game_image, game_rating)
              VALUES (?, ?, ?, ?, ?)',
             [$userId, $slug, $name, $image, $rating]
         );
+
         return ['success' => true, 'message' => 'Añadido a tu lista de deseos.'];
     }
 
