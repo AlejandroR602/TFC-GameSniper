@@ -1,19 +1,23 @@
 <?php
+
 /**
  * MODEL: User
  * Gestiona el registro, autenticación y datos de usuarios.
  */
-class User {
+class User
+{
     private Database $db;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->db = Database::getInstance();
     }
 
     // ----------------------------------------------------------------
     // REGISTRO
     // ----------------------------------------------------------------
-    public function register(string $username, string $email, string $password): array {
+    public function register(string $username, string $email, string $password): array
+    {
         // Validaciones
         if (empty($username) || empty($email) || empty($password)) {
             return ['success' => false, 'message' => 'Todos los campos son obligatorios.'];
@@ -42,7 +46,8 @@ class User {
     // ----------------------------------------------------------------
     // LOGIN
     // ----------------------------------------------------------------
-    public function login(string $email, string $password): array {
+    public function login(string $email, string $password): array
+    {
         if (empty($email) || empty($password)) {
             return ['success' => false, 'message' => 'Rellena todos los campos.'];
         }
@@ -63,25 +68,51 @@ class User {
     // ----------------------------------------------------------------
     // BÚSQUEDAS
     // ----------------------------------------------------------------
-    public function findById(int $id): ?array {
+    public function findById(int $id): ?array
+    {
         return $this->db->fetchOne('SELECT * FROM users WHERE id = ?', [$id]);
     }
 
-    public function findByEmail(string $email): ?array {
+    public function findByEmail(string $email): ?array
+    {
         return $this->db->fetchOne('SELECT * FROM users WHERE email = ?', [$email]);
     }
 
-    public function findByUsername(string $username): ?array {
+    public function findByUsername(string $username): ?array
+    {
         return $this->db->fetchOne('SELECT * FROM users WHERE username = ?', [$username]);
     }
 
-    public function getAll(): array {
-        return $this->db->fetchAll(
-            'SELECT id, username, email, role, created_at FROM users ORDER BY created_at DESC'
+    // Este comentario es para evitar que Psalm piense que el método getAll() es inalcanzable, ya que se llama desde AdminController.
+    
+    /** @psalm-suppress UnreachableCode */
+    public function getAll(): array
+    {
+        $users = $this->db->fetchAll(
+            'SELECT u.id, u.username, u.email, u.role, u.created_at,
+                COUNT(w.id) AS wishlist_count
+         FROM users u
+         LEFT JOIN wishlist w ON w.user_id = u.id
+         GROUP BY u.id
+         ORDER BY u.created_at DESC'
         );
+
+        // Sacar que juegos tiene cada usr en la wishlist
+        $wl = new Wishlist();
+        $result = [];
+        foreach ($users as $user) {
+            $games = $wl->getByUser($user['id']);
+            $user['wishlist_games'] = array_map(fn($g) => [
+                'slug' => $g['game_slug'],
+                'name' => $g['game_name'],
+            ], $games);
+            $result[] = $user;
+        }
+        return $result;
     }
 
-    public function count(): int {
+    public function count(): int
+    {
         $r = $this->db->fetchOne('SELECT COUNT(*) as total FROM users');
         return (int)($r['total'] ?? 0);
     }
@@ -89,9 +120,11 @@ class User {
     // ----------------------------------------------------------------
     // ACTUALIZACIÓN
     // ----------------------------------------------------------------
-    public function updateProfile(int $id, string $username, string $email): array {
+    public function updateProfile(int $id, string $username, string $email): array
+    {
         if ($this->db->fetchOne(
-            'SELECT id FROM users WHERE email = ? AND id != ?', [$email, $id]
+            'SELECT id FROM users WHERE email = ? AND id != ?',
+            [$email, $id]
         )) {
             return ['success' => false, 'message' => 'El email ya está en uso.'];
         }
@@ -103,7 +136,8 @@ class User {
         return ['success' => true, 'message' => 'Perfil actualizado correctamente.'];
     }
 
-    public function changePassword(int $id, string $current, string $new): array {
+    public function changePassword(int $id, string $current, string $new): array
+    {
         $user = $this->findById($id);
         if (!password_verify($current, $user['password'])) {
             return ['success' => false, 'message' => 'La contraseña actual no es correcta.'];
@@ -116,28 +150,32 @@ class User {
         return ['success' => true, 'message' => 'Contraseña cambiada correctamente.'];
     }
 
-    public function changeRole(int $id, string $role): bool {
+    public function changeRole(int $id, string $role): bool
+    {
         $valid = ['user', 'admin'];
         if (!in_array($role, $valid)) return false;
         $this->db->execute('UPDATE users SET role = ? WHERE id = ?', [$role, $id]);
         return true;
     }
 
-    public function delete(int $id): bool {
+    public function delete(int $id): bool
+    {
         return $this->db->execute('DELETE FROM users WHERE id = ?', [$id]) > 0;
     }
 
     // ----------------------------------------------------------------
     // HISTORIAL DE BÚSQUEDAS
     // ----------------------------------------------------------------
-    public function saveSearch(int $userId, string $query): void {
+    public function saveSearch(int $userId, string $query): void
+    {
         $this->db->execute(
             'INSERT INTO search_history (user_id, query) VALUES (?, ?)',
             [$userId, $query]
         );
     }
 
-    public function getSearchHistory(int $userId, int $limit = 10): array {
+    public function getSearchHistory(int $userId, int $limit = 10): array
+    {
         return $this->db->fetchAll(
             'SELECT query, searched_at FROM search_history
              WHERE user_id = ? ORDER BY searched_at DESC LIMIT ?',

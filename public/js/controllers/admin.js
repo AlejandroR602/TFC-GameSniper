@@ -83,19 +83,43 @@ export class AdminController {
             const users = await res.json();
 
             const tbody = document.getElementById('usersTableBody');
-            tbody.innerHTML = users.map((u, i) => `
-                <tr>
-                    <td>${i + 1}</td>
-                    <td>${u.username}</td>
-                    <td>${u.email}</td>
-                    <td>${u.role}</td>
-                    <td>${u.created_at}</td>
-                    <td>
-                        <button class="btn btn-danger" onclick="AdminController.deleteUser(${u.id})">🗑 Eliminar</button>
-                        <button class="btn btn-outline" onclick="AdminController.changeRole(${u.id})">🔄 Rol</button>
-                    </td>
-                </tr>
-            `).join('');
+            tbody.innerHTML = users.map((u, i) => {
+                const games = u.wishlist_games ?? [];
+                const pillsHtml = games.length
+                    ? games.map(g =>
+                        `<a href="${BASE_URL}/game/${AdminController._esc(g.slug)}"
+                            target="_blank"
+                            style="display:inline-block;margin:2px;padding:2px 8px;
+                                background:var(--surface3);border:1px solid var(--border);
+                                border-radius:20px;font-size:.72rem;color:var(--text-muted)">
+                            ${AdminController._esc(g.name)}
+                        </a>`).join('')
+                    : '<span style="color:var(--text-muted);font-size:.8rem">–</span>';
+
+                return `  
+                    <tr>
+                        <td>${i + 1}</td>
+                        <td>${AdminController._esc(u.username)}</td>
+                        <td>${AdminController._esc(u.email)}</td>
+                        <td>${AdminController._esc(u.role)}</td>
+                        <td>${u.created_at}</td>
+                        <td style="max-width:260px">
+                            <div style="display:flex;flex-wrap:wrap;gap:2px;align-items:center">
+                                <span style="font-size:.8rem;color:var(--accent);font-weight:600;margin-right:4px">
+                                    ❤️ ${games.length}
+                                </span>
+                                ${pillsHtml}
+                            </div>
+                        </td>
+                        <td>
+                            <div style="display:flex;gap:.5rem;align-items:center;">
+                                <button class="btn btn-danger btn-sm" onclick="AdminController.deleteUser(${u.id})">🗑 Eliminar</button>
+                                <button class="btn btn-outline btn-sm" onclick="AdminController.changeRole(${u.id})">🔄 Rol</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
 
             document.getElementById('usersLoading').hidden = true;
             document.getElementById('usersTable').hidden = false;
@@ -116,7 +140,7 @@ export class AdminController {
             document.getElementById('apiStatusList').innerHTML = apis.map(api => `
                 <div class="api-status-item">
                     <strong>${api.name}</strong> – ${api.description}
-                    <span>${api.configured ? '✅ Configurada' : '❌ Sin configurar'}</span>
+                    <span>${api.configured ? '✅ Conectada' : '❌ Desconectada'}</span>
                 </div>
             `).join('');
         } catch (err) {
