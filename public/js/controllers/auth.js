@@ -1,5 +1,8 @@
-import { UserModel } from '../models/UserModel.js';
+import { UserModel }    from '../models/UserModel.js';
 import { WishlistModel } from '../models/WishlistModel.js';
+
+const EYE_SVG     = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+const EYE_OFF_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
 
 const BASE_URL = document.querySelector('meta[name="base-url"]')?.content ?? '';
 
@@ -72,7 +75,7 @@ export class AuthController {
         try {
             const res = await this.model.register(username, email, password);
             if (res.success) {
-                this._alert('✅ Cuenta creada. Iniciando sesión...', 'success');
+                this._alert('Cuenta creada. Iniciando sesión...', 'success');
                 const loginRes = await this.model.login(email, password);
                 if (loginRes.success) {
                     setTimeout(() => window.location.href = `${BASE_URL}/`, 800);
@@ -105,9 +108,12 @@ export class AuthController {
         if (hint) hint.textContent = val.length ? (labels[score] ?? 'Muy débil') : 'Introduce una contraseña';
     }
 
-    _togglePass(id) {
-        const inp = document.getElementById(id);
-        if (inp) inp.type = inp.type === 'password' ? 'text' : 'password';
+    _togglePass(inputId) {
+        const inp = document.getElementById(inputId);
+        if (!inp) return;
+        inp.type = inp.type === 'password' ? 'text' : 'password';
+        const btn = inp.parentElement?.querySelector('.toggle-pass');
+        if (btn) btn.innerHTML = inp.type === 'password' ? EYE_SVG : EYE_OFF_SVG;
     }
 
     _alert(msg, type) {
@@ -180,7 +186,7 @@ export class ProfileController {
             document.getElementById('editEmail').value = u.email ?? '';
             document.getElementById('memberSince').value = u.created_at ? new Date(u.created_at).toLocaleDateString('es-ES') : '';
             const rb = document.getElementById('profileRoleBadge');
-            if (rb) { rb.textContent = u.role === 'admin' ? '🛡 Admin' : '👤 Usuario'; rb.className = `role-badge role-badge--${u.role}`; }
+            if (rb) { rb.textContent = u.role === 'admin' ? 'Admin' : 'Usuario'; rb.className = `role-badge role-badge--${u.role}`; }
         }
 
         if (wishlist.status === 'fulfilled') document.getElementById('statWishlist').textContent = wishlist.value.length;
@@ -193,7 +199,7 @@ export class ProfileController {
                 const ul = document.getElementById('historyList');
                 ul.innerHTML = h.map(item => `
                     <li class="history-item">
-                        <a href="${BASE_URL}/search?q=${encodeURIComponent(item.query)}">🔍 ${item.query}</a>
+                        <a href="${BASE_URL}/search?q=${encodeURIComponent(item.query)}">${item.query}</a>
                         <span class="history-item__date">${new Date(item.searched_at).toLocaleString('es-ES')}</span>
                     </li>`).join('');
                 ul.hidden = false;
@@ -250,10 +256,10 @@ export class WishlistController {
                     <div class="game-card__body">
                         <h3 class="game-card__title">${item.game_name}</h3>
                         <div class="game-card__meta">
-                            ${item.game_rating ? `<span>⭐ ${parseFloat(item.game_rating).toFixed(1)}</span>` : ''}
+                            ${item.game_rating ? `<span>${parseFloat(item.game_rating).toFixed(1)}</span>` : ''}
                             <span class="text-muted">${new Date(item.added_at).toLocaleDateString('es-ES')}</span>
                         </div>
-                        <button class="btn btn-outline btn-sm btn-remove" data-slug="${item.game_slug}">🗑 Eliminar</button>
+                        <button class="btn btn-outline btn-sm btn-remove" data-slug="${item.game_slug}">Eliminar</button>
                     </div>
                 </article>`).join('');
 
@@ -323,7 +329,7 @@ export class AdminController {
                 <td>${u.id}</td>
                 <td><div class="table-user"><span class="table-avatar">${u.username[0].toUpperCase()}</span>${u.username}</div></td>
                 <td>${u.email}</td>
-                <td><span class="role-badge role-badge--${u.role}">${u.role === 'admin' ? '🛡 Admin' : '👤 User'}</span></td>
+                <td><span class="role-badge role-badge--${u.role}">${u.role === 'admin' ? 'Admin' : 'User'}</span></td>
                 <td>${new Date(u.created_at).toLocaleDateString('es-ES')}</td>
                 <td class="table-actions">
                     ${u.username !== me ? `
@@ -331,7 +337,7 @@ export class AdminController {
                             <option value="user"  ${u.role === 'user' ? 'selected' : ''}>User</option>
                             <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
                         </select>
-                        <button class="btn btn-danger btn-sm" onclick="window._adminDeleteUser(${u.id},'${u.username}')">🗑</button>
+                        <button class="btn btn-danger btn-sm" onclick="window._adminDeleteUser(${u.id},'${u.username}')">Eliminar</button>
                     ` : '<span class="text-muted">(Tú)</span>'}
                 </td>
             </tr>`).join('');
@@ -355,7 +361,7 @@ export class AdminController {
             <div class="api-status-item">
                 <div><strong>${api.name}</strong> <span class="text-muted">– ${api.description}</span></div>
                 <span class="status-badge status-badge--${api.configured ? 'ok' : 'warn'}">
-                    ${api.configured ? '✅ Configurada' : '⚠️ Sin configurar'}
+                    ${api.configured ? 'Configurada' : 'Sin configurar'}
                 </span>
             </div>`).join('');
     }

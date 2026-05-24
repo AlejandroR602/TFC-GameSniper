@@ -7,7 +7,7 @@
     <div class="container">
 
         <div class="page-header">
-            <h1>🛡 Panel de Administración</h1>
+            <h1>Panel de Administración</h1>
             <p>Gestión de usuarios, comentarios y estadísticas de GameSniper</p>
         </div>
 
@@ -16,22 +16,22 @@
         <!-- Estadísticas (pobladas por JS) -->
         <div class="admin-stats">
             <div class="stat-card">
-                <div class="stat-card__icon">👥</div>
+                <div class="stat-card__icon"></div>
                 <div class="stat-card__value" id="statUsers"></div>
                 <div class="stat-card__label">Usuarios registrados</div>
             </div>
             <div class="stat-card">
-                <div class="stat-card__icon">❤️</div>
+                <div class="stat-card__icon"></div>
                 <div class="stat-card__value" id="statWishlists"></div>
                 <div class="stat-card__label">Juegos en wishlists</div>
             </div>
             <div class="stat-card">
-                <div class="stat-card__icon">⏳</div>
+                <div class="stat-card__icon"></div>
                 <div class="stat-card__value" id="statPendingComments"></div>
                 <div class="stat-card__label">Comentarios pendientes</div>
             </div>
             <div class="stat-card">
-                <div class="stat-card__icon">🔌</div>
+                <div class="stat-card__icon"></div>
                 <div class="stat-card__value" id="statApis"></div>
                 <div class="stat-card__label">APIs conectadas</div>
             </div>
@@ -40,7 +40,7 @@
         <!-- Moderación de comentarios (poblada por JS) -->
         <div class="admin-card">
             <div class="admin-card__header">
-                <h2>💬 Moderación de comentarios</h2>
+                <h2>Moderación de comentarios</h2>
             </div>
             <div id="commentsLoading" class="loading-state" style="padding:2rem">
                 <div class="spinner"></div>
@@ -69,7 +69,7 @@
         <!-- Tabla de usuarios (poblada por JS) -->
         <div class="admin-card">
             <div class="admin-card__header">
-                <h2>👥 Gestión de usuarios</h2>
+                <h2>Gestión de usuarios</h2>
             </div>
             <div id="usersLoading" class="loading-state" style="padding:2rem">
                 <div class="spinner"></div>
@@ -95,7 +95,7 @@
         <!-- Estado de las APIs (poblado por JS) -->
         <div class="admin-card">
             <div class="admin-card__header">
-                <h2>🔌 Estado de las APIs</h2>
+                <h2>Estado de las APIs</h2>
             </div>
             <div class="api-status-list" id="apiStatusList">
                 <div class="loading-state" style="padding:1rem"><div class="spinner spinner-sm"></div></div>
@@ -109,7 +109,7 @@
 <div id="rejectModal" class="modal-overlay" hidden>
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="rejectModalTitle">
         <div class="modal__header">
-            <h3 class="modal__title" id="rejectModalTitle">❌ Rechazar comentario</h3>
+            <h3 class="modal__title" id="rejectModalTitle">Rechazar comentario</h3>
             <button class="modal__close" id="rejectModalClose" aria-label="Cerrar">✕</button>
         </div>
         <div class="modal__body">
@@ -135,11 +135,41 @@
     </div>
 </div>
 
+<!-- Modal: motivo de eliminación de comentario -->
+<div id="deleteCommentModal" class="modal-overlay" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="deleteCommentModalTitle">
+        <div class="modal__header">
+            <h3 class="modal__title" id="deleteCommentModalTitle">Eliminar comentario</h3>
+            <button class="modal__close" id="deleteCommentModalClose" aria-label="Cerrar">✕</button>
+        </div>
+        <div class="modal__body">
+            <p class="modal__desc">
+                El usuario verá este motivo en la sección <strong>Mis Comentarios</strong> de su perfil.
+            </p>
+            <div class="form-group">
+                <label for="deleteCommentReason">Motivo de la eliminación <span class="text-danger">*</span></label>
+                <textarea id="deleteCommentReason"
+                          class="modal__textarea"
+                          rows="3"
+                          maxlength="500"
+                          placeholder="Ej: Contenido inapropiado, spam, lenguaje ofensivo..."></textarea>
+                <span class="form-hint" id="deleteCommentReasonError" style="color:var(--error);display:none">
+                    El motivo es obligatorio.
+                </span>
+            </div>
+        </div>
+        <div class="modal__footer">
+            <button id="deleteCommentModalCancel"  class="btn btn-outline">Cancelar</button>
+            <button id="deleteCommentModalConfirm" class="btn btn-danger">Confirmar eliminación</button>
+        </div>
+    </div>
+</div>
+
 <!-- Modal: cambio de rol -->
 <div id="roleModal" class="modal-overlay" hidden>
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="roleModalTitle">
         <div class="modal__header">
-            <h3 class="modal__title" id="roleModalTitle">🔄 Cambiar rol de usuario</h3>
+            <h3 class="modal__title" id="roleModalTitle">Cambiar rol de usuario</h3>
             <button class="modal__close" id="roleModalClose" aria-label="Cerrar">✕</button>
         </div>
         <div class="modal__body">

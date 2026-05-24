@@ -1,18 +1,15 @@
 import { GameModel }     from '../models/GameModel.js';
 import { WishlistModel } from '../models/WishlistModel.js';
 
+const HEART_SVG = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+
 export class SearchController {
     constructor() {
-        this.model = new GameModel();
-        this.baseUrl = document.querySelector('meta[name="base-url"]')?.content ?? '';
-        this.query = new URLSearchParams(window.location.search).get('q') ?? '';
-        this.page = 1;
-        this.order = '-rating';
         this.model         = new GameModel();
         this.baseUrl       = document.querySelector('meta[name="base-url"]')?.content ?? '';
         this.query         = new URLSearchParams(window.location.search).get('q') ?? '';
         this.page          = 1;
-        this.order         = '-rating';
+        this.order         = '-added';
         this.loggedIn      = document.querySelector('meta[name="user-logged-in"]')?.content === 'true';
         this.wishlistModel = this.loggedIn ? new WishlistModel() : null;
         this.wishlistSlugs = new Set();
@@ -32,9 +29,9 @@ export class SearchController {
         btn?.addEventListener('click', () => this._onSearch());
         input?.addEventListener('keydown', e => { if (e.key === 'Enter') this._onSearch(); });
 
-        document.querySelectorAll('.filter-btn').forEach(b => {
+        document.querySelectorAll('#searchFilters .filter-btn').forEach(b => {
             b.addEventListener('click', () => {
-                document.querySelectorAll('.filter-btn').forEach(x => x.classList.remove('active'));
+                document.querySelectorAll('#searchFilters .filter-btn').forEach(x => x.classList.remove('active'));
                 b.classList.add('active');
                 this.order = b.dataset.order;
                 this.page = 1;
@@ -65,27 +62,11 @@ export class SearchController {
             if (!data?.results?.length) { this._show('empty'); return; }
 
             document.getElementById('searchFilters').hidden = false;
-            
-           // ORDENAR POR VALORACIÓN (si el usuario ha elegido ese filtro)
-            if (this.order === 'rating') {
-                data.results.sort((a, b) => {
-                    // Normalizamos rating RAWG a 0–100
-                    const ra = a.rating ? a.rating * 20 : null;
-                    const rb = b.rating ? b.rating * 20 : null;
 
-                    // Si tienen metacritic, lo usamos como respaldo
-                    const ma = a.metacritic ?? null;
-                    const mb = b.metacritic ?? null;
+            // Ocultar juegos sin imagen
+            data.results = data.results.filter(g => g.background_image);
 
-                    // Valor final para ordenar
-                    const va = ra ?? ma ?? -1;
-                    const vb = rb ?? mb ?? -1;
-
-                    return vb - va; // primero los que tienen valoración
-                });
-            }
-
-            // ⭐ FILTRO: solo juegos con valoración real
+            // FILTRO: solo juegos con valoración real
             const filterRated = document.getElementById('filterRated');
             if (filterRated?.checked) {
                 data.results = data.results.filter(g => {
@@ -95,7 +76,7 @@ export class SearchController {
                 });
             }
 
-            
+            if (!data.results.length) { this._show('empty'); return; }
             this._renderGames(data.results);
             this._renderPagination(this.page, Math.ceil((data.count ?? data.results.length) / 20));
             this._show('results');
@@ -113,12 +94,22 @@ export class SearchController {
         document.getElementById('emptyQuery').textContent = q;
     }
 
+    _metaBadge(score) {
+        if (!score) return '';
+        const cls = score >= 75 ? 'mc--green' : score >= 50 ? 'mc--yellow' : 'mc--red';
+        return `<span class="mc-badge ${cls}">MC ${score}</span>`;
+    }
+
     _renderGames(games) {
+        const showMeta = this.order === '-metacritic';
         document.getElementById('gamesGrid').innerHTML = games.map(g => {
             const img    = g.background_image ?? `${this.baseUrl}/img/no-image.svg`;
             const slug   = g.slug ?? '';
             const rating = g.rating ? (g.rating * 20).toFixed(0) : (g.metacritic ?? null);
-            const heart = `<button class="game-card__wishlist-btn" data-slug="${slug}" title="Añadir a wishlist">🤍</button>`;
+            const heart  = `<button class="game-card__wishlist-btn" data-slug="${slug}" title="Añadir a wishlist">${HEART_SVG}</button>`;
+            const ratingHtml = showMeta
+                ? (g.metacritic ? this._metaBadge(g.metacritic) : `<span class="no-rating">Sin valoración</span>`)
+                : (rating !== null ? `<span class="star-rating">${rating}/100</span>` : `<span class="no-rating">Sin valoración</span>`);
             return `
             <article class="game-card"
                 data-slug="${slug}"
@@ -136,12 +127,8 @@ export class SearchController {
                 </div>
                 <div class="game-card__body">
                     <h3 class="game-card__title">${this._esc(g.name)}</h3>
-                    <div class="game-card__meta">
-                    ${rating !== null 
-                        ? `<span class="star-rating">⭐ ${rating}/100</span>` 
-                        : `<span class="no-rating">Sin valoración</span>`}
-                    </div>
-                    ${g.genres?.length ? `<div class="game-card__tags">${g.genres.slice(0, 2).map(x => `<span class="tag">${x.name}</span>`).join('')}</div>` : ''}
+                    <div class="game-card__meta">${ratingHtml}</div>
+                    ${g.genres?.length ? `<div class="game-card__tags">${g.genres.slice(0, 2).map(x => `<span class="tag">${this._esc(x.name)}</span>`).join('')}</div>` : ''}
                     <div class="game-card__price" data-loaded="false">
                         <span class="price-label">Desde</span>
                         <span class="price-value">—</span>
@@ -213,7 +200,6 @@ export class SearchController {
         document.querySelectorAll('.game-card__wishlist-btn').forEach(btn => {
             const slug = btn.dataset.slug;
             if (this.wishlistSlugs.has(slug)) {
-                btn.textContent = '❤️';
                 btn.classList.add('in-wishlist');
             }
             btn.addEventListener('click', async (e) => {
@@ -239,11 +225,9 @@ export class SearchController {
         if (result.success) {
             if (inWishlist) {
                 this.wishlistSlugs.delete(slug);
-                btn.textContent = '🤍';
                 btn.classList.remove('in-wishlist');
             } else {
                 this.wishlistSlugs.add(slug);
-                btn.textContent = '❤️';
                 btn.classList.add('in-wishlist');
             }
         }

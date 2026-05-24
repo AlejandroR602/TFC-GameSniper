@@ -11,6 +11,9 @@ class AdminController {
             include VIEWS_PATH . '/errors/403.php';
             exit;
         }
+        // Sincronizar admin_level con BD para que migraciones surtan efecto sin re-login
+        $fresh = (new User())->findById((int)$_SESSION['user_id']);
+        $_SESSION['admin_level'] = (int)($fresh['admin_level'] ?? 0);
     }
 
     public function dashboard(): void {
@@ -57,6 +60,13 @@ class AdminController {
             echo json_encode(['success' => false, 'message' => 'No puedes eliminarte a ti mismo.']);
             return;
         }
+        $myLevel     = (int)($_SESSION['admin_level'] ?? 0);
+        $target      = (new User())->findById($id);
+        $targetLevel = (int)($target['admin_level'] ?? 0);
+        if ($targetLevel >= $myLevel) {
+            echo json_encode(['success' => false, 'message' => 'No tienes permiso para eliminar a este administrador.']);
+            return;
+        }
         $ok = (new User())->delete($id);
         echo json_encode(['success' => $ok]);
     }
@@ -100,9 +110,35 @@ class AdminController {
         echo json_encode(['success' => $ok]);
     }
 
-    // ── JSON: eliminar comentario ─────────────────────────────────
+    // ── JSON: eliminar comentario (soft-delete con motivo) ────────
     public function deleteComment(int $id): void {
         $this->requireAdmin();
+        $data   = json_decode(file_get_contents('php://input'), true);
+        $reason = trim($data['reason'] ?? '');
+        if (!$id || !$reason) {
+            echo json_encode(['success' => false, 'message' => 'Debes indicar un motivo de eliminación.']);
+            return;
+        }
+        $ok = (new Comment())->softDelete($id, $reason);
+        echo json_encode(['success' => $ok]);
+    }
+
+    // ── JSON: restaurar comentario eliminado ──────────────────────
+    public function restoreComment(): void {
+        $this->requireAdmin();
+        $data = json_decode(file_get_contents('php://input'), true);
+        $id   = (int)($data['id'] ?? 0);
+        if (!$id) { echo json_encode(['success' => false, 'message' => 'ID no válido.']); return; }
+        $ok = (new Comment())->approve($id);
+        echo json_encode(['success' => $ok]);
+    }
+
+    // ── JSON: eliminar comentario definitivamente ─────────────────
+    public function purgeComment(): void {
+        $this->requireAdmin();
+        $data = json_decode(file_get_contents('php://input'), true);
+        $id   = (int)($data['id'] ?? 0);
+        if (!$id) { echo json_encode(['success' => false, 'message' => 'ID no válido.']); return; }
         $ok = (new Comment())->delete($id);
         echo json_encode(['success' => $ok]);
     }

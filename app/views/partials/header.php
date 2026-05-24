@@ -6,6 +6,7 @@ $isLoggedIn = !empty($_SESSION['logged_in']);
 $isAdmin    = $isLoggedIn && ($_SESSION['role'] ?? '') === 'admin';
 $username   = htmlspecialchars($_SESSION['username'] ?? '', ENT_QUOTES, 'UTF-8');
 $userRole   = htmlspecialchars($_SESSION['role']     ?? '', ENT_QUOTES, 'UTF-8');
+$adminLevel = $isAdmin ? (int)($_SESSION['admin_level'] ?? 0) : 0;
 $csrfToken  = htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8');
 ?>
 <!DOCTYPE html>
@@ -21,6 +22,7 @@ $csrfToken  = htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8');
     <meta name="user-logged-in" content="<?= $isLoggedIn ? 'true' : 'false' ?>">
     <meta name="username"       content="<?= $username ?>">
     <meta name="user-role"      content="<?= $userRole ?>">
+    <?php if ($isAdmin): ?><meta name="admin-level" content="<?= $adminLevel ?>"><?php endif; ?>
     <link rel="stylesheet" href="<?= BASE_URL ?>/css/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -46,6 +48,10 @@ $csrfToken  = htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8');
                 </svg>
             </button>
         </form>
+        <div class="navbar__pages">
+            <a href="<?= BASE_URL ?>/explorar" class="nav-link">Explorar</a>
+            <a href="<?= BASE_URL ?>/genres"   class="nav-link">Géneros</a>
+        </div>
         <nav class="navbar__nav" id="navMenu">
             <?php if ($isLoggedIn): ?>
                 <a href="<?= BASE_URL ?>/wishlist" class="nav-link">
@@ -55,7 +61,16 @@ $csrfToken  = htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8');
                     Wishlist
                 </a>
                 <div class="navbar__user">
-                    <span class="navbar__avatar"><?= mb_strtoupper(mb_substr($username, 0, 1)) ?></span>
+                    <div class="navbar__avatar-wrap">
+                        <span class="navbar__avatar">
+                            <?php if (!empty($_SESSION['avatar'])): ?>
+                                <img src="<?= htmlspecialchars($_SESSION['avatar'], ENT_QUOTES, 'UTF-8') ?>" alt="Avatar">
+                            <?php else: ?>
+                                <?= mb_strtoupper(mb_substr($username, 0, 1)) ?>
+                            <?php endif; ?>
+                        </span>
+                        <span class="navbar__notif-dot" id="navbarNotifDot" hidden></span>
+                    </div>
                     <span><?= $username ?></span>
                     <div class="navbar__dropdown">
                         <a href="<?= BASE_URL ?>/profile">Mi perfil</a>
@@ -75,5 +90,21 @@ $csrfToken  = htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8');
 </header>
 
 <!-- Modelos JS (cargados como scripts clásicos para que sean globales) -->
+
+<?php if ($isLoggedIn): ?>
+<script>
+(function(){
+    fetch('<?= BASE_URL ?>/api/user/notifications')
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+            if ((d.unseen_comments || 0) > 0) {
+                var dot = document.getElementById('navbarNotifDot');
+                if (dot) dot.hidden = false;
+            }
+        })
+        .catch(function(){});
+})();
+</script>
+<?php endif; ?>
 
 <main class="main-content">

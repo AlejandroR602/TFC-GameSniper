@@ -57,10 +57,12 @@ class User
         }
 
         // Iniciar sesión
-        $_SESSION['user_id']   = $user['id'];
-        $_SESSION['username']  = $user['username'];
-        $_SESSION['role']      = $user['role'];
-        $_SESSION['logged_in'] = true;
+        $_SESSION['user_id']     = $user['id'];
+        $_SESSION['username']    = $user['username'];
+        $_SESSION['role']        = $user['role'];
+        $_SESSION['admin_level'] = (int)($user['admin_level'] ?? 0);
+        $_SESSION['avatar']      = $user['avatar'] ?? '';
+        $_SESSION['logged_in']   = true;
 
         return ['success' => true, 'user' => $user];
     }
@@ -89,7 +91,7 @@ class User
     public function getAll(): array
     {
         $users = $this->db->fetchAll(
-            'SELECT u.id, u.username, u.email, u.role, u.created_at,
+            'SELECT u.id, u.username, u.email, u.role, u.admin_level, u.created_at,
                 COUNT(w.id) AS wishlist_count
          FROM users u
          LEFT JOIN wishlist w ON w.user_id = u.id
@@ -148,6 +150,13 @@ class User
         $hash = password_hash($new, PASSWORD_BCRYPT);
         $this->db->execute('UPDATE users SET password = ? WHERE id = ?', [$hash, $id]);
         return ['success' => true, 'message' => 'Contraseña cambiada correctamente.'];
+    }
+
+    public function updateAvatar(int $id, string $avatarUrl): bool
+    {
+        $this->db->execute('UPDATE users SET avatar = ? WHERE id = ?', [$avatarUrl, $id]);
+        $_SESSION['avatar'] = $avatarUrl;
+        return true;
     }
 
     public function changeRole(int $id, string $role): bool

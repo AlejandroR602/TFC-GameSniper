@@ -19,7 +19,9 @@ CREATE TABLE IF NOT EXISTS `users` (
   `username`   VARCHAR(50)  NOT NULL,
   `email`      VARCHAR(100) NOT NULL,
   `password`   VARCHAR(255) NOT NULL COMMENT 'Hash bcrypt',
-  `role`       ENUM('user', 'admin') NOT NULL DEFAULT 'user',
+  `role`        ENUM('user', 'admin') NOT NULL DEFAULT 'user',
+  `admin_level` TINYINT(1)   NOT NULL DEFAULT 0 COMMENT '0=usuario, 1=admin, 2=admin jefe',
+  `avatar`      VARCHAR(255) NULL DEFAULT NULL,
   `created_at` TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP    NULL ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -73,14 +75,23 @@ CREATE TABLE IF NOT EXISTS `search_history` (
 --
 --     Credenciales: admin@gamesniper.com / Admin1234!
 --     Hash generado con: password_hash('Admin1234!', PASSWORD_BCRYPT)
-INSERT INTO `users` (`username`, `email`, `password`, `role`) VALUES
-(
-  'admin',
-  'admin@gamesniper.com',
-  '$2a$12$mcUrOnj4JTgU3K.ExLyXqOYfbRmGevLEwg5u5buh9GqozOiTcw50O',
-  'admin'
-)
-ON DUPLICATE KEY UPDATE `id` = `id`;
+-- admin jefe (nivel 2) – Admin1234!
+INSERT INTO `users` (`username`, `email`, `password`, `role`, `admin_level`) VALUES
+('admin', 'admin@gamesniper.com', '$2a$12$mcUrOnj4JTgU3K.ExLyXqOYfbRmGevLEwg5u5buh9GqozOiTcw50O', 'admin', 2)
+ON DUPLICATE KEY UPDATE `admin_level` = 2;
+
+-- admins nivel 1
+INSERT INTO `users` (`username`, `email`, `password`, `role`, `admin_level`) VALUES
+('Corra',  'Corra@gamesniper.com',  '$2y$10$UDJNvJbrrldtegTaBjM75uFZI3VOi9LCOM4n0PmB5jHW9XbMOMSjS', 'admin', 1)
+ON DUPLICATE KEY UPDATE `admin_level` = 1;
+
+INSERT INTO `users` (`username`, `email`, `password`, `role`, `admin_level`) VALUES
+('Juanjo', 'Juanjo@gamesniper.com', '$2y$10$Nw00BBajo1Xs8DGus4MjJuHTha4v.UfEG5LDcj7nq78OQYPR/pCgW', 'admin', 1)
+ON DUPLICATE KEY UPDATE `admin_level` = 1;
+
+INSERT INTO `users` (`username`, `email`, `password`, `role`, `admin_level`) VALUES
+('Alejo',  'Alejo@gamesniper.com',  '$2y$10$FWnIRx3vEeYssGpHRqZlzOhupOO96Y0ACEcimBZaKFCVKDY1qYMtK', 'admin', 1)
+ON DUPLICATE KEY UPDATE `admin_level` = 1;
 
 -- ------------------------------------------------------------
 -- Tabla: comments
@@ -92,8 +103,9 @@ CREATE TABLE IF NOT EXISTS `comments` (
   `game_slug`        VARCHAR(255) NOT NULL COMMENT 'Slug RAWG del juego',
   `game_name`        VARCHAR(255) NOT NULL COMMENT 'Nombre del juego (caché)',
   `content`          TEXT         NOT NULL,
-  `status`           ENUM('pending','approved','rejected') NOT NULL DEFAULT 'pending',
+  `status`           ENUM('pending','approved','rejected','deleted') NOT NULL DEFAULT 'pending',
   `rejection_reason` TEXT         NULL,
+  `status_seen`      TINYINT(1)   NOT NULL DEFAULT 1 COMMENT '0=usuario no ha visto el nuevo estado',
   `created_at`       TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at`       TIMESTAMP    NULL     ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),

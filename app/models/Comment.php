@@ -38,10 +38,25 @@ class Comment {
 
     public function getByUser(int $userId): array {
         return $this->db->fetchAll(
-            'SELECT id, game_slug, game_name, content, status, rejection_reason, created_at
+            'SELECT id, game_slug, game_name, content, status, rejection_reason, status_seen, created_at
              FROM comments
              WHERE user_id = ?
              ORDER BY created_at DESC',
+            [$userId]
+        );
+    }
+
+    public function countUnseenByUser(int $userId): int {
+        $r = $this->db->fetchOne(
+            'SELECT COUNT(*) as total FROM comments WHERE user_id = ? AND status_seen = 0',
+            [$userId]
+        );
+        return (int)($r['total'] ?? 0);
+    }
+
+    public function markAllSeenByUser(int $userId): void {
+        $this->db->execute(
+            'UPDATE comments SET status_seen = 1 WHERE user_id = ? AND status_seen = 0',
             [$userId]
         );
     }
@@ -52,9 +67,17 @@ class Comment {
                     c.rejection_reason, c.created_at, u.username, u.id AS user_id
              FROM comments c
              JOIN users u ON c.user_id = u.id
-             ORDER BY FIELD(c.status, "pending", "approved", "rejected"), c.created_at ASC',
+             ORDER BY FIELD(c.status, "pending", "approved", "rejected", "deleted"), c.created_at ASC',
             []
         );
+    }
+
+    public function softDelete(int $id, string $reason): bool {
+        $this->db->execute(
+            'UPDATE comments SET status = "deleted", rejection_reason = ?, status_seen = 0 WHERE id = ?',
+            [trim($reason), $id]
+        );
+        return true;
     }
 
     public function countPending(): int {
@@ -64,7 +87,7 @@ class Comment {
 
     public function approve(int $id): bool {
         $this->db->execute(
-            'UPDATE comments SET status = "approved", rejection_reason = NULL WHERE id = ?',
+            'UPDATE comments SET status = "approved", rejection_reason = NULL, status_seen = 0 WHERE id = ?',
             [$id]
         );
         return true;
@@ -72,7 +95,7 @@ class Comment {
 
     public function reject(int $id, string $reason): bool {
         $this->db->execute(
-            'UPDATE comments SET status = "rejected", rejection_reason = ? WHERE id = ?',
+            'UPDATE comments SET status = "rejected", rejection_reason = ?, status_seen = 0 WHERE id = ?',
             [trim($reason), $id]
         );
         return true;

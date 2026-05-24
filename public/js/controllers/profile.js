@@ -19,6 +19,7 @@ export class ProfileController {
             this.loadComments(),
         ]);
         this._bindEvents();
+        this._initAvatarUpload();
     }
 
     async loadProfile() {
@@ -31,8 +32,17 @@ export class ProfileController {
 
             document.getElementById('profileUsername').textContent =
                 user.username ?? '';
-            document.getElementById('profileAvatar').textContent =
-                (user.username ?? '?')[0].toUpperCase();
+            const initial = (user.username ?? '?')[0].toUpperCase();
+        document.getElementById('profileAvatarInitial').textContent = initial;
+
+        if (user.avatar) {
+            const img = document.getElementById('profileAvatarImg');
+            img.src    = user.avatar;
+            img.hidden = false;
+            document.getElementById('profileAvatarInitial').hidden = true;
+            const removeBtn = document.getElementById('removeAvatarBtn');
+            if (removeBtn) removeBtn.hidden = false;
+        }
 
             const roleBadge = document.getElementById('profileRoleBadge');
             roleBadge.textContent = user.role === 'admin' ? 'Administrador' : 'Usuario';
@@ -98,15 +108,25 @@ export class ProfileController {
                 return;
             }
 
-            // Notificación: badge en el nav si hay comentarios rechazados
-            const rejectedCount = comments.filter(c => c.status === 'rejected').length;
-            if (rejectedCount > 0) {
-                const badge = document.getElementById('commentsBadge');
-                if (badge) { badge.textContent = rejectedCount; badge.hidden = false; }
-            }
-
             listEl.innerHTML = comments.map(c => this._renderUserComment(c)).join('');
             listEl.hidden = false;
+
+            // Badge: comentarios con estado no visto aún
+            const unseenCount = comments.filter(c => c.status_seen == 0).length;
+            if (unseenCount > 0) {
+                const navBadge  = document.getElementById('commentsBadge');
+                const cardBadge = document.getElementById('commentsBadgeCard');
+                if (navBadge)  { navBadge.textContent  = unseenCount; navBadge.hidden  = false; }
+                if (cardBadge) { cardBadge.textContent = unseenCount; cardBadge.hidden = false; }
+            }
+
+            // Marcar como vistos y eliminar punto del navbar
+            fetch(`${this.userModel.baseUrl}/api/user/comment-seen`, { method: 'POST' })
+                .then(() => {
+                    const dot = document.getElementById('navbarNotifDot');
+                    if (dot) dot.hidden = true;
+                })
+                .catch(() => {});
         } catch (err) {
             if (loadEl)  loadEl.hidden  = true;
             if (emptyEl) emptyEl.hidden = false;
@@ -119,24 +139,31 @@ export class ProfileController {
             pending:  { label: 'Pendiente de revisión', cls: 'comment-status--pending'  },
             approved: { label: 'Publicado',             cls: 'comment-status--approved' },
             rejected: { label: 'Rechazado',             cls: 'comment-status--rejected' },
+            deleted:  { label: 'Eliminado',             cls: 'comment-status--deleted'  },
         };
         const st = statusMap[c.status] ?? statusMap.pending;
 
-        const rejectionHtml = (c.status === 'rejected' && c.rejection_reason)
-            ? `<div class="comment-rejection">
+        let reasonHtml = '';
+        if (c.status === 'rejected' && c.rejection_reason) {
+            reasonHtml = `<div class="comment-rejection">
                    <strong>Motivo del rechazo:</strong> ${this._esc(c.rejection_reason)}
-               </div>`
-            : '';
+               </div>`;
+        } else if (c.status === 'deleted' && c.rejection_reason) {
+            reasonHtml = `<div class="comment-rejection comment-rejection--deleted">
+                   <strong>Motivo de la eliminación:</strong> ${this._esc(c.rejection_reason)}
+               </div>`;
+        }
 
+        const isDimmed = c.status === 'rejected' || c.status === 'deleted';
         return `
-            <div class="my-comment-item ${c.status === 'rejected' ? 'my-comment-item--rejected' : ''}">
+            <div class="my-comment-item ${isDimmed ? 'my-comment-item--rejected' : ''}">
                 <div class="my-comment-item__header">
                     <a href="${this.userModel.baseUrl}/game/${this._esc(c.game_slug)}"
-                       class="my-comment-item__game">🎮 ${this._esc(c.game_name)}</a>
+                       class="my-comment-item__game">${this._esc(c.game_name)}</a>
                     <span class="comment-status ${st.cls}">${st.label}</span>
                 </div>
                 <p class="my-comment-item__content">${this._esc(c.content)}</p>
-                ${rejectionHtml}
+                ${reasonHtml}
                 <span class="my-comment-item__date">
                     ${new Date(c.created_at).toLocaleDateString('es-ES')}
                 </span>
@@ -148,6 +175,61 @@ export class ProfileController {
         const d = document.createElement('div');
         d.textContent = String(str ?? '');
         return d.innerHTML;
+    }
+
+    _initAvatarUpload() {
+        const avatarDiv  = document.getElementById('profileAvatar');
+        const fileInput  = document.getElementById('avatarInput');
+        const removeBtn  = document.getElementById('removeAvatarBtn');
+        if (!avatarDiv || !fileInput) return;
+
+        avatarDiv.addEventListener('click', () => fileInput.click());
+
+        removeBtn?.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            removeBtn.disabled = true;
+            try {
+                const res  = await fetch(`${this.userModel.baseUrl}/api/user/avatar/delete`, { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('profileAvatarImg').hidden = true;
+                    document.getElementById('profileAvatarImg').src    = '';
+                    document.getElementById('profileAvatarInitial').hidden = false;
+                    removeBtn.hidden = true;
+                    if (typeof showToast === 'function') showToast('Foto de perfil eliminada.');
+                }
+            } catch {
+                if (typeof showToast === 'function') showToast('Error al eliminar la foto.');
+            } finally {
+                removeBtn.disabled = false;
+            }
+        });
+
+        fileInput.addEventListener('change', async () => {
+            const file = fileInput.files?.[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('avatar', file);
+
+            try {
+                const res  = await fetch(`${this.userModel.baseUrl}/api/user/avatar`, { method: 'POST', body: formData });
+                const data = await res.json();
+                if (data.success) {
+                    const img = document.getElementById('profileAvatarImg');
+                    img.src    = data.avatar + '?t=' + Date.now();
+                    img.hidden = false;
+                    document.getElementById('profileAvatarInitial').hidden = true;
+                    if (typeof showToast === 'function') showToast('Foto de perfil actualizada.');
+                } else {
+                    if (typeof showToast === 'function') showToast(data.message ?? 'Error al subir la foto.');
+                }
+            } catch {
+                if (typeof showToast === 'function') showToast('Error de conexión al subir la foto.');
+            } finally {
+                fileInput.value = '';
+            }
+        });
     }
 
     _bindEvents() {

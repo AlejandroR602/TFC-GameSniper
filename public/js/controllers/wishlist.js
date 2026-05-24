@@ -55,10 +55,10 @@ export class WishlistController {
                 <div class="game-card__body">
                     <h3 class="game-card__title">${name}</h3>
                     <div class="game-card__meta">
-                        ${rating ? `<span>⭐ ${rating.toFixed(1)}</span>` : ''}
+                        ${rating ? `<span>${rating.toFixed(1)}</span>` : ''}
                     </div>
                     <button class="btn btn-outline btn-sm wishlist-remove" data-slug="${g.game_slug}" style="margin-top:.5rem">
-                        🗑️ Quitar
+                        Quitar
                     </button>
                 </div>
             </article>`;

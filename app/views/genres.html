@@ -1,0 +1,76 @@
+<!-- ============================================================
+     VIEW: Genres  |  GameSniper
+     ============================================================ -->
+
+<section class="section">
+    <div class="container">
+
+        <!-- ── Vista 1: cuadrícula de géneros ──────────────────── -->
+        <div id="genresView">
+            <div class="search-header">
+                <h1 class="search-header__title">Géneros</h1>
+                <p class="text-muted">Selecciona un género para explorar sus juegos</p>
+            </div>
+
+            <div id="genresLoading" class="loading-state">
+                <div class="spinner"></div>
+                <p>Cargando géneros...</p>
+            </div>
+
+            <div id="genresError" class="alert alert-error" hidden>
+                No se pudieron cargar los géneros.
+            </div>
+
+            <div class="genres-grid" id="genresGrid" hidden></div>
+        </div>
+
+        <!-- ── Vista 2: juegos del género seleccionado ─────────── -->
+        <div id="genreDetailView" hidden>
+
+            <div class="search-header">
+                <button class="btn btn-outline btn-sm" id="backToGenresBtn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path d="M19 12H5M12 5l-7 7 7 7"/>
+                    </svg>
+                    Todos los géneros
+                </button>
+                <h1 class="search-header__title" id="genreDetailTitle"></h1>
+            </div>
+
+            <!-- Filtros dentro del género -->
+            <div class="search-filters" id="genreDetailFilters">
+                <span class="search-filters__label">Ordenar por:</span>
+                <button class="filter-btn active" data-order="-added">Popularidad</button>
+                <button class="filter-btn" data-order="-rating">Valoración</button>
+                <button class="filter-btn" data-order="-metacritic">Metacritic</button>
+                <button class="filter-btn" data-order="-released">Fecha</button>
+                <button class="filter-btn" data-order="name">Nombre A-Z</button>
+                <label class="filter-extra">
+                    <input type="checkbox" id="genreDetailFilterRated">
+                    Solo juegos con valoración
+                </label>
+            </div>
+
+            <div id="genreDetailLoading" class="loading-state" hidden>
+                <div class="spinner"></div>
+                <p>Cargando juegos...</p>
+            </div>
+
+            <div id="genreDetailEmpty" class="empty-state" hidden>
+                <div class="empty-state__icon"></div>
+                <h3>Sin resultados</h3>
+                <p>No encontramos juegos con los filtros seleccionados.</p>
+            </div>
+
+            <div class="games-grid" id="genreDetailGrid"></div>
+            <div class="pagination"  id="genreDetailPagination"></div>
+
+        </div>
+
+    </div>
+</section>
+
+<script type="module">
+import { GenresController } from './js/controllers/genres.js';
+new GenresController().init();
+</script>

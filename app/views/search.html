@@ -22,7 +22,9 @@
         <!-- Filtros de ordenación -->
         <div class="search-filters" id="searchFilters" hidden>
             <span class="search-filters__label">Ordenar por:</span>
-            <button class="filter-btn active" data-order="-rating">Valoración</button>
+            <button class="filter-btn active" data-order="-added">Popularidad</button>
+            <button class="filter-btn" data-order="-rating">Valoración</button>
+            <button class="filter-btn" data-order="-metacritic">Metacritic</button>
             <button class="filter-btn" data-order="-released">Fecha</button>
             <button class="filter-btn" data-order="name">Nombre A-Z</button>
             <label class="filter-extra">
@@ -39,14 +41,14 @@
 
         <!-- Estado: sin resultados -->
         <div id="searchEmpty" class="empty-state" hidden>
-            <div class="empty-state__icon">🎮</div>
+            <div class="empty-state__icon"></div>
             <h3>Sin resultados</h3>
             <p>No encontramos juegos para "<span id="emptyQuery"></span>".<br>Prueba con otro título.</p>
         </div>
 
         <!-- Estado: error -->
         <div id="searchError" class="alert alert-error" hidden>
-            ⚠️ <strong>Error de API:</strong> <span id="searchErrorMsg">No se pudo conectar con el servidor de juegos.</span>
+            <strong>Error de API:</strong> <span id="searchErrorMsg">No se pudo conectar con el servidor de juegos.</span>
             <br><small style="opacity:.75">Revisa la consola del navegador (F12) para más detalles.</small>
         </div>
 

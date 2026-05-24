@@ -1,0 +1,46 @@
+<!-- ============================================================
+     VIEW: Explore  |  GameSniper
+     ============================================================ -->
+
+<section class="section">
+    <div class="container">
+
+        <div class="search-header">
+            <h1 class="search-header__title">Explorar juegos</h1>
+            <p class="text-muted">Descubre los mejores juegos de todas las plataformas</p>
+        </div>
+
+        <div class="search-filters" id="exploreFilters">
+            <span class="search-filters__label">Ordenar por:</span>
+            <button class="filter-btn active" data-order="-added">Popularidad</button>
+            <button class="filter-btn" data-order="-rating">Valoración</button>
+            <button class="filter-btn" data-order="-metacritic">Metacritic</button>
+            <button class="filter-btn" data-order="-released">Fecha</button>
+            <button class="filter-btn" data-order="name">Nombre A-Z</button>
+            <label class="filter-extra">
+                <input type="checkbox" id="exploreFilterRated">
+                Solo juegos con valoración
+            </label>
+        </div>
+
+        <div id="exploreLoading" class="loading-state">
+            <div class="spinner"></div>
+            <p>Cargando juegos...</p>
+        </div>
+
+        <div id="exploreEmpty" class="empty-state" hidden>
+            <div class="empty-state__icon"></div>
+            <h3>Sin resultados</h3>
+            <p>No se encontraron juegos con los filtros seleccionados.</p>
+        </div>
+
+        <div class="games-grid" id="exploreGamesGrid"></div>
+        <div class="pagination"  id="explorePagination"></div>
+
+    </div>
+</section>
+
+<script type="module">
+import { ExploreController } from './js/controllers/explore.js';
+new ExploreController().init();
+</script>

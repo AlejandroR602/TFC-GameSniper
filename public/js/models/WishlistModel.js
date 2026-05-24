@@ -40,7 +40,7 @@ export class WishlistModel {
                 slug,
                 name,
                 image,
-                rating: rating_final,   // ⭐ Enviamos rating unificado
+                rating: rating_final,   // Enviamos rating unificado
                 csrf_token: this.csrfToken
             }),
         });

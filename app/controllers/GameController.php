@@ -33,6 +33,70 @@ class GameController
         include VIEWS_PATH . '/partials/footer.php';
     }
 
+    public function explore(): void
+    {
+        $pageTitle = 'Explorar – GameSniper';
+        include VIEWS_PATH . '/partials/header.php';
+        readfile(VIEWS_PATH . '/explore.html');
+        include VIEWS_PATH . '/partials/footer.php';
+    }
+
+    public function genres(): void
+    {
+        $pageTitle = 'Géneros – GameSniper';
+        include VIEWS_PATH . '/partials/header.php';
+        readfile(VIEWS_PATH . '/genres.html');
+        include VIEWS_PATH . '/partials/footer.php';
+    }
+
+    // ── API PROXY: RAWG Géneros ───────────────────────────────────
+    public function apiGenres(): void
+    {
+        $url = RAWG_BASE_URL . '/genres?' . http_build_query(['key' => RAWG_API_KEY, 'page_size' => 40]);
+        $r   = $this->get($url);
+        if (!$r) { echo json_encode(['results' => []]); return; }
+        echo $r;
+    }
+
+    public function apiGenreGames(): void
+    {
+        $genre = trim($_GET['genre'] ?? '');
+        $page  = max(1, (int)($_GET['page'] ?? 1));
+        $order = $_GET['ordering'] ?? '-added';
+        $params = [
+            'key'       => RAWG_API_KEY,
+            'page'      => $page,
+            'page_size' => 40,
+            'ordering'  => $order,
+        ];
+        if ($genre) $params['genres'] = $genre;
+        $r = $this->get(RAWG_BASE_URL . '/games?' . http_build_query($params));
+        if (!$r) { echo json_encode(['results' => []]); return; }
+        echo $r;
+    }
+
+    // ── API PROXY: RAWG – Juego por slug exacto ──────────────────
+    public function apiGameBySlug(string $slug): void
+    {
+        $slug = preg_replace('/[^a-z0-9\-]/', '', strtolower(trim($slug)));
+        if (empty($slug)) {
+            echo json_encode(['error' => 'Slug no válido']);
+            return;
+        }
+        $url = RAWG_BASE_URL . '/games/' . $slug . '?' . http_build_query(['key' => RAWG_API_KEY]);
+        $r = $this->get($url);
+        if (!$r) {
+            echo json_encode(['error' => 'No se pudo conectar con RAWG API.']);
+            return;
+        }
+        $data = json_decode($r, true);
+        if (!empty($data['detail'])) {
+            echo json_encode(['error' => 'Juego no encontrado.']);
+            return;
+        }
+        echo $r;
+    }
+
     // ── API PROXY: RAWG ───────────────────────────────────────────
     public function apiSearch(): void
     {
@@ -121,24 +185,40 @@ class GameController
             return;
         }
 
-        $body  = 'fields name,summary,first_release_date,involved_companies.company.name,cover.url,rating,genres.name,platforms.name,screenshots.url;search "' . addslashes($title) . '"; limit 1;';
+        $body  = 'fields name,summary,first_release_date,involved_companies.company.name,cover.url,rating,genres.name,platforms.name,screenshots.url;search "' . addslashes($title) . '"; limit 8;';
         $r     = $this->post(IGDB_BASE_URL . '/games', $body, [
             'Client-ID: ' . IGDB_CLIENT_ID,
             'Authorization: Bearer ' . $token,
             'Content-Type: text/plain',
         ]);
         $data  = json_decode($r, true);
-        if (empty($data[0])) {
+        if (empty($data)) {
             echo json_encode([]);
             return;
         }
 
-        // Normalizar URL de portada
-        if (isset($data[0]['cover']['url'])) {
-            $url = str_replace('t_thumb', 't_cover_big', $data[0]['cover']['url']);
-            $data[0]['cover']['url'] = str_starts_with($url, 'http') ? $url : 'https:' . $url;
+        // Elegir el resultado cuyo nombre sea el más parecido al título buscado
+        $titleLower = mb_strtolower($title);
+        $best       = null;
+        foreach ($data as $game) {
+            $nameLower = mb_strtolower($game['name'] ?? '');
+            if ($nameLower === $titleLower) {          // coincidencia exacta
+                $best = $game;
+                break;
+            }
+            // coincidencia parcial: el título buscado está contenido en el nombre o viceversa
+            if (!$best && (str_contains($nameLower, $titleLower) || str_contains($titleLower, $nameLower))) {
+                $best = $game;
+            }
         }
-        echo json_encode($data[0]);
+        if (!$best) $best = $data[0]; // fallback al primer resultado de relevancia de IGDB
+
+        // Normalizar URL de portada
+        if (isset($best['cover']['url'])) {
+            $url = str_replace('t_thumb', 't_cover_big', $best['cover']['url']);
+            $best['cover']['url'] = str_starts_with($url, 'http') ? $url : 'https:' . $url;
+        }
+        echo json_encode($best);
     }
 
     // ── OAuth2 IGDB Token (cacheado en fichero) ───────────────────

@@ -37,6 +37,8 @@ match(true) {
     // ── Vistas principales ────────────────────────────────────
     ($s0 === '')          => (new HomeController())->index(),
     ($s0 === 'search')    => (new GameController())->search(),
+    ($s0 === 'explorar')  => (new GameController())->explore(),
+    ($s0 === 'genres')    => (new GameController())->genres(),
     ($s0 === 'game')      => (new GameController())->detail($s1),
     ($s0 === 'login')     => (new UserController())->login(),
     ($s0 === 'register')  => (new UserController())->register(),
@@ -46,9 +48,12 @@ match(true) {
     ($s0 === 'admin')     => (new AdminController())->dashboard(),
 
     // ── API: Juegos (proxy a APIs externas) ───────────────────
-    ($s0==='api' && $s1==='search')  => call_user_func(function() { header('Content-Type: application/json'); (new GameController())->apiSearch(); }),
-    ($s0==='api' && $s1==='prices')  => call_user_func(function() { header('Content-Type: application/json'); (new GameController())->apiPrices(); }),
-    ($s0==='api' && $s1==='igdb')    => call_user_func(function() { header('Content-Type: application/json'); (new GameController())->apiIgdb(); }),
+    ($s0==='api' && $s1==='game' && !empty($s2)) => call_user_func(function() use ($s2) { header('Content-Type: application/json'); (new GameController())->apiGameBySlug($s2); }),
+    ($s0==='api' && $s1==='search')      => call_user_func(function() { header('Content-Type: application/json'); (new GameController())->apiSearch(); }),
+    ($s0==='api' && $s1==='prices')      => call_user_func(function() { header('Content-Type: application/json'); (new GameController())->apiPrices(); }),
+    ($s0==='api' && $s1==='igdb')        => call_user_func(function() { header('Content-Type: application/json'); (new GameController())->apiIgdb(); }),
+    ($s0==='api' && $s1==='genres')      => call_user_func(function() { header('Content-Type: application/json'); (new GameController())->apiGenres(); }),
+    ($s0==='api' && $s1==='genre-games') => call_user_func(function() { header('Content-Type: application/json'); (new GameController())->apiGenreGames(); }),
 
     // ── API: Auth ─────────────────────────────────────────────
     ($s0==='api' && $s1==='auth' && $s2==='login')    => (new UserController())->apiLogin(),
@@ -60,7 +65,11 @@ match(true) {
     ($s0==='api' && $s1==='user' && $s2==='update')   => (new UserController())->apiUpdateProfile(),
     ($s0==='api' && $s1==='user' && $s2==='password') => (new UserController())->apiChangePassword(),
     ($s0==='api' && $s1==='user' && $s2==='history')  => (new UserController())->apiHistory(),
-    ($s0==='api' && $s1==='user' && $s2==='wishlist') => (new UserController())->apiWishlistGet(),
+    ($s0==='api' && $s1==='user' && $s2==='avatar' && $s3==='delete') => call_user_func(function() { header('Content-Type: application/json'); (new UserController())->apiDeleteAvatar(); }),
+    ($s0==='api' && $s1==='user' && $s2==='avatar')        => (new UserController())->apiUploadAvatar(),
+    ($s0==='api' && $s1==='user' && $s2==='wishlist')       => (new UserController())->apiWishlistGet(),
+    ($s0==='api' && $s1==='user' && $s2==='notifications')  => (new UserController())->apiNotifications(),
+    ($s0==='api' && $s1==='user' && $s2==='comment-seen')   => (new UserController())->apiMarkCommentsSeen(),
 
     // ── API: Wishlist ─────────────────────────────────────────
     ($s0==='api' && $s1==='wishlist' && $s2==='add')    => (new UserController())->apiWishlistAdd(),
@@ -77,6 +86,8 @@ match(true) {
     // ── API: Admin – Comentarios (orden: específico → genérico) ──
     ($s0==='api' && $s1==='admin' && $s2==='comments' && $s3==='approve') => call_user_func(function() { header('Content-Type: application/json'); (new AdminController())->approveComment(); }),
     ($s0==='api' && $s1==='admin' && $s2==='comments' && $s3==='reject')  => call_user_func(function() { header('Content-Type: application/json'); (new AdminController())->rejectComment(); }),
+    ($s0==='api' && $s1==='admin' && $s2==='comments' && $s3==='restore') => call_user_func(function() { header('Content-Type: application/json'); (new AdminController())->restoreComment(); }),
+    ($s0==='api' && $s1==='admin' && $s2==='comments' && $s3==='purge')   => call_user_func(function() { header('Content-Type: application/json'); (new AdminController())->purgeComment(); }),
     ($s0==='api' && $s1==='admin' && $s2==='comments' && is_numeric($s3)) => call_user_func(function() use ($s3) { header('Content-Type: application/json'); (new AdminController())->deleteComment((int)$s3); }),
     ($s0==='api' && $s1==='admin' && $s2==='comments')                    => call_user_func(function() { header('Content-Type: application/json'); (new AdminController())->apiComments(); }),
 

@@ -148,9 +148,75 @@ class UserController {
         $this->jsonResponse($result);
     }
 
+    public function apiUploadAvatar(): void {
+        if (empty($_SESSION['logged_in'])) { $this->jsonResponse(['success' => false, 'message' => 'No autenticado.'], 401); }
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || empty($_FILES['avatar'])) {
+            $this->jsonResponse(['success' => false, 'message' => 'No se recibió ningún archivo.']);
+        }
+        $file = $_FILES['avatar'];
+        if ($file['error'] !== UPLOAD_ERR_OK) {
+            $this->jsonResponse(['success' => false, 'message' => 'Error al subir el archivo.']);
+        }
+        if ($file['size'] > 2 * 1024 * 1024) {
+            $this->jsonResponse(['success' => false, 'message' => 'El archivo no puede superar 2 MB.']);
+        }
+        $finfo   = new finfo(FILEINFO_MIME_TYPE);
+        $mime    = $finfo->file($file['tmp_name']);
+        $allowed = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/gif' => 'gif', 'image/webp' => 'webp'];
+        if (!isset($allowed[$mime])) {
+            $this->jsonResponse(['success' => false, 'message' => 'Formato no permitido. Usa JPG, PNG, GIF o WebP.']);
+        }
+        $uploadDir = __DIR__ . '/../../public/uploads/avatars/';
+        if (!is_dir($uploadDir)) { mkdir($uploadDir, 0755, true); }
+
+        $userId = (int)$_SESSION['user_id'];
+        $user   = (new User())->findById($userId);
+        if (!empty($user['avatar'])) {
+            $old = $uploadDir . basename(parse_url($user['avatar'], PHP_URL_PATH));
+            if (file_exists($old)) @unlink($old);
+        }
+        $filename = $userId . '_' . time() . '.' . $allowed[$mime];
+        if (!move_uploaded_file($file['tmp_name'], $uploadDir . $filename)) {
+            $this->jsonResponse(['success' => false, 'message' => 'No se pudo guardar el archivo.']);
+        }
+        $avatarUrl = BASE_URL . '/uploads/avatars/' . $filename;
+        (new User())->updateAvatar($userId, $avatarUrl);
+        $this->jsonResponse(['success' => true, 'avatar' => $avatarUrl]);
+    }
+
+    public function apiDeleteAvatar(): void {
+        if (empty($_SESSION['logged_in'])) { $this->jsonResponse(['success' => false, 'message' => 'No autenticado.'], 401); }
+        $userId = (int)$_SESSION['user_id'];
+        $user   = (new User())->findById($userId);
+
+        if (!empty($user['avatar'])) {
+            $uploadDir = __DIR__ . '/../../public/uploads/avatars/';
+            $old = $uploadDir . basename(parse_url($user['avatar'], PHP_URL_PATH));
+            if (file_exists($old)) @unlink($old);
+        }
+
+        (new User())->updateAvatar($userId, '');
+        $_SESSION['avatar'] = '';
+        $this->jsonResponse(['success' => true]);
+    }
+
     public function apiWishlistCheck(): void {
         $slug = $_GET['slug'] ?? '';
         if (empty($_SESSION['logged_in'])) { $this->jsonResponse(['inWishlist' => false]); }
         $this->jsonResponse(['inWishlist' => (new Wishlist())->has((int)$_SESSION['user_id'], $slug)]);
+    }
+
+    // ── ENDPOINTS JSON: Notificaciones ────────────────────────────
+
+    public function apiNotifications(): void {
+        if (empty($_SESSION['logged_in'])) { $this->jsonResponse(['unseen_comments' => 0]); }
+        $count = (new Comment())->countUnseenByUser((int)$_SESSION['user_id']);
+        $this->jsonResponse(['unseen_comments' => $count]);
+    }
+
+    public function apiMarkCommentsSeen(): void {
+        if (empty($_SESSION['logged_in'])) { $this->jsonResponse(['success' => false]); }
+        (new Comment())->markAllSeenByUser((int)$_SESSION['user_id']);
+        $this->jsonResponse(['success' => true]);
     }
 }

@@ -20,13 +20,14 @@ export class GameModel {
     }
 
     // ----------------------------------------------------------------
-    // RAWG API – Detalle de un juego por slug
+    // RAWG API – Detalle de un juego por slug exacto
     // ----------------------------------------------------------------
     async getDetail(slug) {
-        const res = await fetch(`${this.baseUrl}/api/search?q=${encodeURIComponent(slug)}&page=1`);
+        const res = await fetch(`${this.baseUrl}/api/game/${encodeURIComponent(slug)}`);
         if (!res.ok) throw new Error(`Error cargando juego: ${res.status}`);
         const data = await res.json();
-        return data.results?.find(g => g.slug === slug) ?? data.results?.[0] ?? null;
+        if (data.error) throw new Error(data.error);
+        return data;
     }
 
     // ----------------------------------------------------------------
@@ -94,7 +95,7 @@ export class GameModel {
         const igdbData = igdb.status === 'fulfilled' ? igdb.value : null;
         const pricesData = prices.status === 'fulfilled' ? prices.value : null;
 
-        // ⭐ Añadimos el rating unificado al objeto RAWG
+        // Añadimos el rating unificado al objeto RAWG
         rawg.rating_final = this._computeUnifiedRating(rawg, igdbData);
 
         return {
@@ -106,12 +107,10 @@ export class GameModel {
 
     async fetchTopRated(limit = 10) {
         const params = new URLSearchParams({
-            ordering: '-rating',
-            metacritic: '80,100',
+            ordering:  '-added',
             page_size: limit,
-            exclude_additions: true,
         });
-        const res = await fetch(`${this.baseUrl}/api/search?${params}`);
+        const res = await fetch(`${this.baseUrl}/api/genre-games?${params}`);
         if (!res.ok) throw new Error(`RAWG error: ${res.status}`);
         const data = await res.json();
         return data.results ?? [];

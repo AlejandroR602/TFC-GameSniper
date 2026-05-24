@@ -9,7 +9,18 @@
 
             <!-- Sidebar (poblado por JS con datos del usuario) -->
             <aside class="profile-sidebar">
-                <div class="profile-avatar" id="profileAvatar">?</div>
+                <div class="profile-avatar" id="profileAvatar" title="Cambiar foto de perfil">
+                    <span id="profileAvatarInitial">?</span>
+                    <img id="profileAvatarImg" src="" alt="Avatar" hidden style="position:absolute;inset:0">
+                    <div class="avatar-upload-overlay">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    </div>
+                    <input type="file" id="avatarInput" accept="image/jpeg,image/png,image/gif,image/webp" hidden>
+                </div>
+                <button id="removeAvatarBtn" class="avatar-remove-btn" hidden title="Volver a la imagen por defecto">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    Eliminar foto
+                </button>
                 <h2 class="profile-sidebar__name" id="profileUsername">Cargando...</h2>
                 <span class="role-badge" id="profileRoleBadge"></span>
                 <div class="profile-sidebar__stats">
@@ -23,12 +34,12 @@
                     </div>
                 </div>
                 <nav class="profile-nav">
-                    <a href="#info"     class="profile-nav__link active">📋 Información</a>
-                    <a href="#security" class="profile-nav__link">🔒 Seguridad</a>
-                    <a href="#history"  class="profile-nav__link">🕐 Historial</a>
-                    <a id="navWishlist" href="#wishlist" class="profile-nav__link">❤️ Wishlist</a>
+                    <a href="#info"     class="profile-nav__link active">Información</a>
+                    <a href="#security" class="profile-nav__link">Seguridad</a>
+                    <a href="#history"  class="profile-nav__link">Historial</a>
+                    <a id="navWishlist" href="#wishlist" class="profile-nav__link">Wishlist</a>
                     <a href="#comments" class="profile-nav__link profile-nav__link--comments">
-                        💬 Mis Comentarios
+                        Mis Comentarios
                         <span id="commentsBadge" class="notif-badge" hidden></span>
                     </a>
                 </nav>
@@ -42,7 +53,7 @@
 
                 <!-- Información personal -->
                 <div class="profile-card" id="info">
-                    <h3 class="profile-card__title">📋 Información personal</h3>
+                    <h3 class="profile-card__title">Información personal</h3>
                     <div class="auth-form">
                         <div class="form-row">
                             <div class="form-group">
@@ -64,7 +75,7 @@
 
                 <!-- Cambio de contraseña -->
                 <div class="profile-card" id="security">
-                    <h3 class="profile-card__title">🔒 Cambiar contraseña</h3>
+                    <h3 class="profile-card__title">Cambiar contraseña</h3>
                     <div class="auth-form">
                         <div class="form-group">
                             <label for="currentPass">Contraseña actual</label>
@@ -80,7 +91,7 @@
 
                 <!-- Historial de búsquedas (poblado por JS) -->
                 <div class="profile-card" id="history">
-                    <h3 class="profile-card__title">🕐 Historial de búsquedas</h3>
+                    <h3 class="profile-card__title">Historial de búsquedas</h3>
                     <div id="historyLoading" class="loading-state" style="padding:1rem 0">
                         <div class="spinner spinner-sm"></div>
                     </div>
@@ -91,7 +102,7 @@
                 <!-- Mis Comentarios (poblado por JS) -->
                 <div class="profile-card" id="comments">
                     <h3 class="profile-card__title">
-                        💬 Mis Comentarios
+                        Mis Comentarios
                         <span id="commentsBadgeCard" class="notif-badge" hidden></span>
                     </h3>
                     <p class="text-muted" style="margin-bottom:1rem;font-size:.85rem;">

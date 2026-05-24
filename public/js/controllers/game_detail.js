@@ -2,6 +2,8 @@ import { GameModel }     from '../models/GameModel.js';
 import { WishlistModel } from '../models/WishlistModel.js';
 import { CommentModel }  from '../models/CommentModel.js';
 
+const HEART_SVG = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+
 export class GameDetailController {
     constructor() {
         this.gameModel     = new GameModel();
@@ -52,9 +54,9 @@ export class GameDetailController {
         // ⭐ RATING UNIFICADO 0–100
         if (g.rating_final != null) {
             document.getElementById('gameRating').innerHTML =
-                `⭐ <strong>${g.rating_final}</strong>/100`;
+                `<strong>${g.rating_final}</strong>/100`;
         } else {
-            document.getElementById('gameRating').innerHTML = `⭐ N/D`;
+            document.getElementById('gameRating').innerHTML = `N/D`;
         }
 
         // (Opcional) Desglose RAWG / IGDB / Metacritic
@@ -71,7 +73,7 @@ export class GameDetailController {
 
         if (g.released)
             document.getElementById('gameRelease').textContent =
-                `📅 ${new Date(g.released).toLocaleDateString('es-ES')}`;
+                new Date(g.released).toLocaleDateString('es-ES');
 
         if (g.genres?.length)
             document.getElementById('gameGenres').innerHTML =
@@ -94,11 +96,14 @@ export class GameDetailController {
                 .map(c => c.company?.name)
                 .filter(Boolean)
                 .join(', ');
-            document.getElementById('gameDev').textContent = `🏢 ${devs}`;
+            document.getElementById('gameDev').textContent = devs;
         }
 
-        if (igdb.cover?.url)
+        // Solo usar la portada de IGDB si el nombre coincide razonablemente con el juego cargado
+        const rawgName = this.gameData?.name ?? '';
+        if (igdb.cover?.url && this._namesMatch(igdb.name, rawgName)) {
             document.getElementById('gameCover').src = igdb.cover.url;
+        }
 
         if (igdb.screenshots?.length) {
             const urls = igdb.screenshots.slice(0, 8).map(s =>
@@ -158,7 +163,7 @@ export class GameDetailController {
             return `
             <div class="price-card ${i===0?'price-card--best':''}">
                 <div class="price-card__shop">${d.shop?.name ?? 'Tienda'}</div>
-                ${i===0 ? '<span class="badge badge-best">💰 Mejor precio</span>' : ''}
+                ${i===0 ? '<span class="badge badge-best">Mejor precio</span>' : ''}
                 <div class="price-card__price">${price}</div>
                 ${reg||cut ? `<div class="price-card__regular">${reg} ${cut}</div>` : ''}
                 <a href="${d.url ?? '#'}" target="_blank" rel="noopener" class="btn btn-primary btn-sm">Ir a la tienda →</a>
@@ -194,8 +199,10 @@ export class GameDetailController {
 
     _updateWishlistBtn() {
         const btn = document.getElementById('wishlistBtn');
-        btn.className   = this.inWishlist ? 'btn btn-outline' : 'btn btn-primary';
-        btn.textContent = this.inWishlist ? '❤️ En tu wishlist' : '🤍 Añadir a wishlist';
+        btn.className = this.inWishlist ? 'btn btn-outline wishlist-active' : 'btn btn-primary';
+        btn.innerHTML  = this.inWishlist
+            ? `${HEART_SVG} En tu wishlist`
+            : `${HEART_SVG} Añadir a wishlist`;
     }
 
     // ------------------------------------------------------------
@@ -284,6 +291,13 @@ export class GameDetailController {
         } finally {
             btn.disabled = false;
         }
+    }
+
+    _namesMatch(igdbName, rawgName) {
+        if (!igdbName || !rawgName) return false;
+        const a = igdbName.toLowerCase().trim();
+        const b = rawgName.toLowerCase().trim();
+        return a === b || a.includes(b) || b.includes(a);
     }
 
     _esc(str) {
