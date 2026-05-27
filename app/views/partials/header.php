@@ -33,11 +33,7 @@ $csrfToken  = htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8');
 <header class="navbar">
     <div class="container navbar__inner">
         <a href="<?= BASE_URL ?>/" class="navbar__logo">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="10" stroke="#00b4ff" stroke-width="2"/>
-                <path d="M8 12h8M12 8l4 4-4 4" stroke="#00b4ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <span>Game<strong>Sniper</strong></span>
+            <img src="<?= BASE_URL ?>/uploads/logo/LogoGameSniper_nobg.png" alt="Logo GameSniper">
         </a>
         <form class="navbar__search" action="<?= BASE_URL ?>/search" method="GET">
             <input type="search" name="q" placeholder="Busca un juego..."
@@ -80,7 +76,7 @@ $csrfToken  = htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8');
                 </div>
             <?php else: ?>
                 <a href="<?= BASE_URL ?>/login" class="nav-link">Entrar</a>
-                <a href="<?= BASE_URL ?>/register" class="btn btn-primary btn-sm">Registrarse</a>
+                <a href="<?= BASE_URL ?>/login?tab=register" class="btn btn-primary btn-sm">Registrarse</a>
             <?php endif; ?>
         </nav>
         <button class="navbar__hamburger" id="hamburger" aria-label="Menú">

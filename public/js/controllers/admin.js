@@ -164,7 +164,7 @@ export class AdminController {
             document.getElementById('apiStatusList').innerHTML = apis.map(api => `
                 <div class="api-status-item">
                     <strong>${api.name}</strong> – ${api.description}
-                    <span>${api.configured ? 'Conectada' : 'Desconectada'}</span>
+                    <span ${api.configured ? 'class="text-success"' : 'class="text-danger"'}>${api.configured ? 'Conectada' : 'Desconectada'}</span>
                 </div>
             `).join('');
         } catch (err) {

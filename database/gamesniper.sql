@@ -67,6 +67,19 @@ CREATE TABLE IF NOT EXISTS `search_history` (
     ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- ------------------------------------------------------------
+-- Tabla: Logo
+-- Imagen del logo de la aplicación guardada como archivo.
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `logo` (
+  `id`         INT(11)      NOT NULL AUTO_INCREMENT,
+  `filename`   VARCHAR(255) NOT NULL COMMENT 'Nombre del archivo en uploads/logo/',
+  `mime_type`  VARCHAR(50)  NOT NULL DEFAULT 'image/png',
+  `is_active`  TINYINT(1)   NOT NULL DEFAULT 1 COMMENT '1 = logo en uso actualmente',
+  `uploaded_at` TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ============================================================
 -- DATOS INICIALES
 -- ============================================================
@@ -116,6 +129,14 @@ CREATE TABLE IF NOT EXISTS `comments` (
     FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
     ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------
+-- Tabla: Logo
+-- Logo de la aplicación por defecto.
+-- ------------------------------------------------------------
+INSERT INTO `logo` (`filename`, `mime_type`, `is_active`) VALUES
+('LogoGameSniper_nobg.png', 'image/png', 1);
+
 
 -- ============================================================
 -- NOTAS SOBRE LA ESTRUCTURA

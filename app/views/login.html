@@ -3,58 +3,184 @@
      Vista pura HTML. AuthController.js gestiona el envío.
      ============================================================ -->
 
-<section class="auth-section section">
-    <div class="container">
-        <div class="auth-card">
+<section class="auth-section">
+    <div class="auth-shell">
+        <!-- ══ PANEL IZQUIERDO: BRANDING ══ -->
+        <div class="panel-brand">
+            <div class="brand-orb"></div>
 
-            <div class="auth-card__header">
-                <div class="auth-card__icon"></div>
-                <h1>Bienvenido de nuevo</h1>
-                <p>Inicia sesión para acceder a tu wishlist e historial</p>
+            <div class="brand-top">
+                <div class="brand-logo">
+                    <img src="http://localhost/TFC-GameSniper/public/uploads/logo/LogoGameSniper_nobg.png"
+                        alt="Logo GameSniper">
+                </div>
+                <span class="brand-name">GAMESNIPER</span>
             </div>
 
-            <!-- Mensajes de error / éxito (poblados por JS) -->
-            <div id="loginAlert" hidden></div>
-
-            <div class="auth-form" id="loginForm">
-                <div class="form-group">
-                    <label for="email">Email</label>
-                    <input
-                        type="email"
-                        id="email"
-                        placeholder="tu@email.com"
-                        autocomplete="email"
-                        required
-                    >
+            <div class="brand-center">
+                <div class="brand-tagline">
+                    Encuentra el<br><span>mejor precio</span><br>antes que nadie.
                 </div>
+                <p class="brand-desc">
+                    Alertas de precios, wishlist personal y explorador de juegos.
+                    Sin anuncios. Sin suscripción. Solo para gamers.
+                </p>
+            </div>
 
-                <div class="form-group">
-                    <label for="password">Contraseña</label>
-                    <div class="input-password">
-                        <input
-                            type="password"
-                            id="password"
-                            placeholder="Tu contraseña"
-                            autocomplete="current-password"
-                            required
-                        >
-                        <button type="button" class="toggle-pass" id="toggleLoginPass" aria-label="Mostrar contraseña"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+            <div class="brand-bottom">
+                <div class="brand-features">
+                    <div class="brand-feature">
+                        <div class="feature-dot"></div>Historial de precios en tiempo real
+                    </div>
+                    <div class="brand-feature">
+                        <div class="feature-dot"></div>Alertas por email cuando baja el precio
+                    </div>
+                    <div class="brand-feature">
+                        <div class="feature-dot"></div>Compara tiendas: Steam, Epic, GOG y más
                     </div>
                 </div>
-
-                <button type="button" id="loginBtn" class="btn btn-primary btn-block">
-                    Iniciar sesión
-                </button>
             </div>
+        </div>
 
-            <p class="auth-card__footer">
-                ¿No tienes cuenta? <a id="registerLink" href="#">Regístrate gratis</a>
-            </p>
+        <!-- ══ PANEL DERECHO: FORMULARIO ══ -->
+        <div class="panel-form">
+            <div class="form-card">
+
+                <!-- Tabs -->
+                <div class="form-tabs" role="tablist">
+                    <button class="tab-btn active" role="tab" aria-selected="true"
+                        onclick="switchTab('login')">Entrar</button>
+                    <button class="tab-btn" role="tab" aria-selected="false"
+                        onclick="switchTab('register')">Registrarse</button>
+                </div>
+
+                <!-- ── PANEL LOGIN ── -->
+                <div class="panel-login active" id="panel-login" role="tabpanel">
+
+                    <div class="auth-card__header">
+                        <h1 class="form-heading">Bienvenido de nuevo</h1>
+                        <p class="form-sub">Inicia sesión para acceder a tu wishlist e historial</p>
+                    </div>
+
+                    <!-- Mensaje de error / éxito (poblado por JS) -->
+                    <div id="loginAlert" hidden></div>
+
+                    <div class="auth-form" id="loginForm">
+
+                        <div class="field-group">
+                            <div class="field form-group">
+                                <label class="field-label" for="email">Email</label>
+                                <div class="field-wrap">
+                                    <input class="field-input" type="email" id="email" placeholder="tu@email.com"
+                                        autocomplete="email" required>
+                                </div>
+                            </div>
+
+                            <div class="field form-group">
+                                <label class="field-label" for="password">Contraseña</label>
+                                <div class="field-wrap input-password">
+
+                                    <input class="field-input" type="password" id="password" placeholder="Tu contraseña"
+                                        autocomplete="current-password" required>
+
+                                    <button type="button" class="field-icon toggle-pass" id="toggleLoginPass"
+                                        onclick="togglePass('password', this)" aria-label="Mostrar contraseña">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                            <circle cx="12" cy="12" r="3" />
+                                        </svg>
+                                    </button>
+
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="button" id="loginBtn" class="btn btn-primary btn-block">
+                            Iniciar sesión
+                        </button>
+
+                    </div>
+
+                    <p class="form-footer auth-card__footer">
+                        ¿No tienes cuenta? <a id="registerLink" href="#"
+                            onclick="switchTab('register'); return false;">Regístrate gratis</a>
+                    </p>
+                </div>
+
+                <!-- ── PANEL REGISTRO ── -->
+                <div class="panel-register" id="panel-register" role="tabpanel">
+
+                    <div class="auth-card__header">
+                        <h1 class="form-heading">Crea tu cuenta</h1>
+                        <p class="form-sub">Gratis. Sin tarjeta. Empieza en 30 segundos.</p>
+                    </div>
+
+                    <!-- Mensaje de error / éxito -->
+                    <div id="registerAlert" hidden></div>
+
+                    <div class="field-group">
+                        <div class="field">
+                            <label class="field-label" for="reg-username">Nombre de usuario</label>
+                            <div class="field-wrap">
+                                <input class="field-input" type="text" id="reg-username" placeholder="gamer_pro_123"
+                                    minlength="3" autocomplete="username">
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="field-label" for="reg-email">Email</label>
+                            <div class="field-wrap">
+                                <input class="field-input" type="email" id="reg-email" placeholder="tu@email.com"
+                                    autocomplete="email">
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="field-label" for="reg-pass">Contraseña</label>
+                            <div class="field-wrap">
+                                <input class="field-input" type="password" id="reg-pass"
+                                    placeholder="Mínimo 6 caracteres" autocomplete="new-password"
+                                    oninput="updateStrength(this.value)">
+                                <button type="button" class="field-icon toggle-pass" id="toggleRegPass"
+                                    onclick="togglePass('reg-pass', this)" aria-label="Mostrar contraseña">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                        <circle cx="12" cy="12" r="3" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="strength-bars" id="strength-bars" aria-hidden="true">
+                                <div class="strength-bar" id="sb1"></div>
+                                <div class="strength-bar" id="sb2"></div>
+                                <div class="strength-bar" id="sb3"></div>
+                                <div class="strength-bar" id="sb4"></div>
+                            </div>
+                            <span class="strength-hint" id="strength-hint"></span>
+                        </div>
+                    </div>
+
+                    <button type="button" id="registerBtn" class="btn btn-primary btn-block">
+                        Empezar gratis
+                    </button>
+
+                    <p class="form-footer auth-card__footer">
+                        ¿Ya tienes cuenta?
+                        <a href="#" onclick="switchTab('login'); return false;">Inicia sesión</a>
+                    </p>
+
+                </div>
+
+            </div>
         </div>
     </div>
 </section>
 
 <script type="module">
-import { AuthController } from './js/controllers/auth.js';
-new AuthController('login').init();
+    import { AuthController } from './js/controllers/auth.js';
+    // Lee si hay ?tab=register en la URL para abrir el tab correcto al cargar
+    const tab = new URLSearchParams(location.search).get('tab') ?? 'login';
+    new AuthController('login').init();   // siempre 'login'; init gestiona ambos tabs
+    if (tab === 'register') window.switchTab('register');
 </script>

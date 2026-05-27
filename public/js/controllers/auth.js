@@ -1,7 +1,7 @@
-import { UserModel }    from '../models/UserModel.js';
+import { UserModel } from '../models/UserModel.js';
 import { WishlistModel } from '../models/WishlistModel.js';
 
-const EYE_SVG     = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+const EYE_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
 const EYE_OFF_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
 
 const BASE_URL = document.querySelector('meta[name="base-url"]')?.content ?? '';
@@ -16,17 +16,11 @@ export class AuthController {
     }
 
     init() {
-        const base = BASE_URL;
-        // Actualizar enlaces
-        document.getElementById('loginLink')?.setAttribute('href', `${base}/login`);
-        document.getElementById('registerLink')?.setAttribute('href', `${base}/register`);
-
-        if (this.mode === 'login') this._initLogin();
-        else this._initRegister();
+        this._initLogin();
+        this._initRegister();
     }
 
     _initLogin() {
-        document.getElementById('toggleLoginPass')?.addEventListener('click', () => this._togglePass('password'));
         document.getElementById('loginBtn')?.addEventListener('click', () => this._doLogin());
         document.getElementById('password')?.addEventListener('keydown', e => { if (e.key === 'Enter') this._doLogin(); });
     }
@@ -55,15 +49,14 @@ export class AuthController {
     }
 
     _initRegister() {
-        document.getElementById('toggleRegPass')?.addEventListener('click', () => this._togglePass('password'));
         document.getElementById('registerBtn')?.addEventListener('click', () => this._doRegister());
-        document.getElementById('password')?.addEventListener('input', e => this._strengthMeter(e.target.value));
+        document.getElementById('reg-pass')?.addEventListener('input', e => this._strengthMeter(e.target.value));
     }
 
     async _doRegister() {
-        const username = document.getElementById('username')?.value.trim();
-        const email = document.getElementById('email')?.value.trim();
-        const password = document.getElementById('password')?.value;
+        const username = document.getElementById('reg-username')?.value.trim();
+        const email = document.getElementById('reg-email')?.value.trim();
+        const password = document.getElementById('reg-pass')?.value;
 
         if (username.length < 3) { this._alert('El usuario debe tener al menos 3 caracteres.', 'error'); return; }
         if (!email) { this._alert('Introduce un email válido.', 'error'); return; }
@@ -108,14 +101,6 @@ export class AuthController {
         if (hint) hint.textContent = val.length ? (labels[score] ?? 'Muy débil') : 'Introduce una contraseña';
     }
 
-    _togglePass(inputId) {
-        const inp = document.getElementById(inputId);
-        if (!inp) return;
-        inp.type = inp.type === 'password' ? 'text' : 'password';
-        const btn = inp.parentElement?.querySelector('.toggle-pass');
-        if (btn) btn.innerHTML = inp.type === 'password' ? EYE_SVG : EYE_OFF_SVG;
-    }
-
     _alert(msg, type) {
         const id = this.mode === 'login' ? 'loginAlert' : 'registerAlert';
         const el = document.getElementById(id);
@@ -125,6 +110,59 @@ export class AuthController {
         el.hidden = false;
     }
 }
+
+// FUNCIONES GLOBALES PARA EL LOGIN Y REGISTRO (alternar pestañas, mostrar contraseña, fuerza de contraseña)
+window.switchTab = function (tab) {
+    const tabs = document.querySelectorAll('.tab-btn');
+    const login = document.getElementById('panel-login');
+    const register = document.getElementById('panel-register');
+
+    if (tab === 'login') {
+        tabs[0].classList.add('active'); tabs[0].setAttribute('aria-selected', 'true');
+        tabs[1].classList.remove('active'); tabs[1].setAttribute('aria-selected', 'false');
+        login.classList.add('active');
+        register.classList.remove('active');
+    } else {
+        tabs[1].classList.add('active'); tabs[1].setAttribute('aria-selected', 'true');
+        tabs[0].classList.remove('active'); tabs[0].setAttribute('aria-selected', 'false');
+        register.classList.add('active');
+        login.classList.remove('active');
+    }
+};
+
+window.updateStrength = function (val) {
+    const bars = ['sb1', 'sb2', 'sb3', 'sb4'].map(id => document.getElementById(id));
+    const hint = document.getElementById('strength-hint');
+
+    bars.forEach(b => { if (b) b.className = 'strength-bar'; });
+    if (!val) { if (hint) hint.textContent = ''; return; }
+
+    let score = 0;
+    if (val.length >= 6) score++;
+    if (val.length >= 10) score++;
+    if (/[A-Z]/.test(val) || /[0-9]/.test(val)) score++;
+    if (/[^A-Za-z0-9]/.test(val)) score++;
+
+    const level = score <= 1 ? 'weak' : score <= 3 ? 'medium' : 'strong';
+    const labels = { weak: 'Débil — añade letras y números', medium: 'Media — añade símbolos o mayúsculas', strong: 'Fuerte ✓' };
+
+    for (let i = 0; i < score; i++) { if (bars[i]) bars[i].classList.add(level); }
+    if (hint) {
+        hint.textContent = labels[level];
+        hint.style.color = level === 'weak' ? 'var(--error)' : level === 'medium' ? 'var(--warn)' : 'var(--success)';
+    }
+};
+
+window.togglePass = (id, btn) => {
+    const input = document.getElementById(id);
+    if (!input) return;
+    const showing = input.type === 'text';
+    input.type = showing ? 'password' : 'text';
+    const button = btn || input.parentElement?.querySelector('.field-icon');
+    if (!button) return;
+    button.innerHTML = showing ? EYE_OFF_SVG : EYE_SVG;
+    button.setAttribute('aria-label', showing ? 'Mostrar contraseña' : 'Ocultar contraseña');
+};
 
 // ================================================================
 // HOME CONTROLLER
