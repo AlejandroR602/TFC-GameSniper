@@ -200,9 +200,10 @@ export class AdminController {
                 let actionBtns;
                 if (c.status === 'pending') {
                     actionBtns = `
-                        <button class="btn btn-sm btn-primary" onclick="AdminController.approveComment(${c.id})">Aprobar</button>
+                        <button class="btn btn-sm btn-danger"  onclick="AdminController.deleteComment(${c.id})">Eliminar</button>
                         <button class="btn btn-sm btn-outline" onclick="AdminController.rejectComment(${c.id})">Rechazar</button>
-                        <button class="btn btn-sm btn-danger"  onclick="AdminController.deleteComment(${c.id})">Eliminar</button>`;
+                        <button class="btn btn-sm btn-primary" onclick="AdminController.approveComment(${c.id})">Aprobar</button>
+                        `;
                 } else if (c.status === 'approved') {
                     actionBtns = `
                         <button class="btn btn-sm btn-danger" onclick="AdminController.deleteComment(${c.id})">Eliminar</button>`;
