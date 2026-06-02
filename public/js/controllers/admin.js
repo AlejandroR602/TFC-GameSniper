@@ -1,4 +1,4 @@
-const BASE_URL      = document.querySelector('meta[name="base-url"]').content;
+const BASE_URL = document.querySelector('meta[name="base-url"]').content;
 const MY_ADMIN_LEVEL = parseInt(document.querySelector('meta[name="admin-level"]')?.content ?? '0');
 
 // ID del comentario pendiente de rechazar (estado del modal)
@@ -110,8 +110,8 @@ export class AdminController {
                     : '<span style="color:var(--text-muted);font-size:.8rem">–</span>';
 
                 const targetLevel = parseInt(u.admin_level ?? 0);
-                const canDelete   = MY_ADMIN_LEVEL > targetLevel;
-                const levelBadge  = u.role === 'admin'
+                const canDelete = MY_ADMIN_LEVEL > targetLevel;
+                const levelBadge = u.role === 'admin'
                     ? (targetLevel >= 2
                         ? `<span class="admin-level-badge admin-level-badge--jefe">Jefe</span>`
                         : `<span class="admin-level-badge admin-level-badge--1">Nv.1</span>`)
@@ -209,12 +209,13 @@ export class AdminController {
                         <button class="btn btn-sm btn-danger" onclick="AdminController.deleteComment(${c.id})">Eliminar</button>`;
                 } else if (c.status === 'rejected') {
                     actionBtns = `
-                        <button class="btn btn-sm btn-danger" onclick="AdminController.deleteComment(${c.id})">Eliminar</button>`;
+                        <button class="btn btn-sm btn-danger"  onclick="AdminController.purgeComment(${c.id})">Borrar</button>
+                        <button class="btn btn-sm btn-primary" onclick="AdminController.restoreComment(${c.id})">Republicar</button>
+                        `;
                 } else {
                     // deleted
                     actionBtns = `
-                        <button class="btn btn-sm btn-primary" onclick="AdminController.restoreComment(${c.id})">Republicar</button>
-                        <button class="btn btn-sm btn-danger"  onclick="AdminController.purgeComment(${c.id})">Borrar</button>`;
+                        <label>Eliminado</label>`;
                 }
 
                 const hasReason = !!c.rejection_reason;
@@ -261,7 +262,7 @@ export class AdminController {
                 const pw = 260;
                 let left = r.left + window.scrollX;
                 if (left + pw > window.innerWidth - 10) left = window.innerWidth - pw - 10;
-                popup.style.top  = (r.bottom + window.scrollY + 7) + 'px';
+                popup.style.top = (r.bottom + window.scrollY + 7) + 'px';
                 popup.style.left = Math.max(8, left) + 'px';
             });
         } catch (err) {
@@ -344,19 +345,19 @@ export class AdminController {
 
     static deleteComment(id) {
         _pendingDeleteCommentId = id;
-        const modal    = document.getElementById('deleteCommentModal');
+        const modal = document.getElementById('deleteCommentModal');
         const textarea = document.getElementById('deleteCommentReason');
-        const errMsg   = document.getElementById('deleteCommentReasonError');
+        const errMsg = document.getElementById('deleteCommentReasonError');
         if (textarea) { textarea.value = ''; textarea.classList.remove('input-error'); }
-        if (errMsg)   errMsg.style.display = 'none';
-        if (modal)    modal.hidden = false;
+        if (errMsg) errMsg.style.display = 'none';
+        if (modal) modal.hidden = false;
         setTimeout(() => textarea?.focus(), 50);
     }
 
     static async _confirmDeleteComment() {
         const textarea = document.getElementById('deleteCommentReason');
-        const errMsg   = document.getElementById('deleteCommentReasonError');
-        const reason   = textarea?.value.trim() ?? '';
+        const errMsg = document.getElementById('deleteCommentReasonError');
+        const reason = textarea?.value.trim() ?? '';
 
         if (!reason) {
             textarea?.classList.add('input-error');
