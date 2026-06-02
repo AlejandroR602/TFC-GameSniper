@@ -141,6 +141,17 @@ class UserController {
         $this->jsonResponse($result);
     }
 
+    public function apiWishlistUpdateImage(): void {
+        if (empty($_SESSION['logged_in'])) { $this->jsonResponse(['success'=>false]); }
+        $data = json_decode(file_get_contents('php://input'), true);
+        (new Wishlist())->updateImage(
+            (int)$_SESSION['user_id'],
+            $data['slug']  ?? '',
+            $data['image'] ?? ''
+        );
+        $this->jsonResponse(['success' => true]);
+    }
+
     public function apiWishlistRemove(): void {
         if (empty($_SESSION['logged_in'])) { $this->jsonResponse(['success'=>false,'message'=>'No autenticado.']); }
         $data   = json_decode(file_get_contents('php://input'), true);

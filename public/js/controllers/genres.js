@@ -315,7 +315,7 @@ export class GenresController {
 
     async _toggleWishlist(btn) {
         const slug = btn.dataset.slug;
-        const art  = btn.closest('[data-slug]');
+        const art  = btn.closest('article');
         btn.disabled = true;
         const inWl   = this.wishlistSlugs.has(slug);
         const result = inWl

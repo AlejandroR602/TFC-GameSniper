@@ -48,6 +48,18 @@ export class WishlistModel {
     }
 
     // ----------------------------------------------------------------
+    // Actualizar la imagen de un juego en la wishlist
+    // ----------------------------------------------------------------
+    async updateImage(slug, image) {
+        const res = await fetch(`${this.baseUrl}/api/wishlist/update-image`, {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ slug, image, csrf_token: this.csrfToken }),
+        });
+        return await res.json();
+    }
+
+    // ----------------------------------------------------------------
     // Eliminar un juego de la wishlist
     // ----------------------------------------------------------------
     async remove(slug) {

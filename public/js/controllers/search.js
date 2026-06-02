@@ -141,36 +141,21 @@ export class SearchController {
 
     _bindPriceHover() {
         const model = new GameModel();
-
         document.querySelectorAll('.game-card').forEach(card => {
             card.addEventListener('mouseenter', async () => {
                 const priceEl = card.querySelector('.game-card__price');
                 if (!priceEl || priceEl.dataset.loaded !== 'false') return;
-
-                // Marca como cargando para no repetir la petición
                 priceEl.dataset.loaded = 'loading';
                 const valueEl = priceEl.querySelector('.price-value');
                 valueEl.textContent = '...';
-
                 try {
-                    const data = await model.getPrices(card.dataset.name);
+                    const data  = await model.getPrices(card.dataset.name);
                     const deals = data?.deals ?? [];
-
-                    if (!deals.length) {
-                        valueEl.textContent = 'Sin datos';
-                        priceEl.dataset.loaded = 'true';
-                        return;
-                    }
-
-                    // El precio más bajo entre todas las tiendas
-                    const best = deals.reduce((min, d) =>
-                        d.price.amount < min.price.amount ? d : min
-                    );
-
+                    if (!deals.length) { valueEl.textContent = 'Sin datos'; priceEl.dataset.loaded = 'true'; return; }
+                    const best  = deals.reduce((min, d) => d.price.amount < min.price.amount ? d : min);
                     valueEl.textContent = `${best.price.amount.toFixed(2)} €`;
                     valueEl.style.color = 'var(--success)';
                     priceEl.dataset.loaded = 'true';
-
                 } catch {
                     valueEl.textContent = 'Sin datos';
                     priceEl.dataset.loaded = 'true';
@@ -211,7 +196,7 @@ export class SearchController {
 
     async _toggleWishlistFromCard(btn) {
         const slug    = btn.dataset.slug;
-        const article = btn.closest('[data-slug]');
+        const article = btn.closest('article');
         const name    = article?.dataset.name ?? '';
         const img     = article?.dataset.img  ?? '';
         const rating  = parseFloat(article?.dataset.rating) || 0;

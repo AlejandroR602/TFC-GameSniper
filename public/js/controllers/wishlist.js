@@ -29,6 +29,7 @@ export class WishlistController {
             this._updateCount(items.length);
             this._renderItems(items);
             document.getElementById('wishlistGrid').hidden = false;
+            this._repairMissingImages(items);
         } catch {
             document.getElementById('wishlistLoading').hidden = true;
             document.getElementById('wishlistEmpty').hidden   = false;
@@ -44,7 +45,7 @@ export class WishlistController {
             const name   = this._esc(g.game_name);
             const rating = parseFloat(g.game_rating) || 0;
             return `
-            <article class="game-card" data-href="${this.baseUrl}/game/${slug}">
+            <article class="game-card" data-slug="${slug}" data-href="${this.baseUrl}/game/${slug}">
                 <div class="game-card__img-wrap">
                     <img src="${img}" alt="${name}" loading="lazy"
                          onerror="this.src='${this.baseUrl}/img/no-image.svg'">
@@ -87,6 +88,22 @@ export class WishlistController {
             const card = e.target.closest('.game-card[data-href]');
             if (card && !e.target.closest('a')) window.location.href = card.dataset.href;
         });
+    }
+
+    async _repairMissingImages(items) {
+        const missing = items.filter(g => !g.game_image);
+        if (!missing.length) return;
+        await Promise.all(missing.map(async g => {
+            try {
+                const res  = await fetch(`${this.baseUrl}/api/game/${encodeURIComponent(g.game_slug)}`);
+                const game = await res.json();
+                const url  = game.background_image;
+                if (!url) return;
+                const imgEl = document.querySelector(`.game-card[data-slug="${g.game_slug}"] img`);
+                if (imgEl) imgEl.src = url;
+                await this.model.updateImage(g.game_slug, url);
+            } catch { /* silent */ }
+        }));
     }
 
     _updateCount(n) {

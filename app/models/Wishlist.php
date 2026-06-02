@@ -56,6 +56,13 @@ class Wishlist {
         );
     }
 
+    public function updateImage(int $userId, string $slug, string $image): void {
+        $this->db->execute(
+            'UPDATE wishlist SET game_image = ? WHERE user_id = ? AND game_slug = ?',
+            [$image, $userId, $slug]
+        );
+    }
+
     public function countByUser(int $userId): int {
         $r = $this->db->fetchOne(
             'SELECT COUNT(*) as total FROM wishlist WHERE user_id = ?',

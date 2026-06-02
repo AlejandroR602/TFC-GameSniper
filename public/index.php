@@ -73,7 +73,8 @@ match(true) {
 
     // ── API: Wishlist ─────────────────────────────────────────
     ($s0==='api' && $s1==='wishlist' && $s2==='add')    => (new UserController())->apiWishlistAdd(),
-    ($s0==='api' && $s1==='wishlist' && $s2==='remove') => (new UserController())->apiWishlistRemove(),
+    ($s0==='api' && $s1==='wishlist' && $s2==='remove')       => (new UserController())->apiWishlistRemove(),
+    ($s0==='api' && $s1==='wishlist' && $s2==='update-image') => call_user_func(function() { header('Content-Type: application/json'); (new UserController())->apiWishlistUpdateImage(); }),
     ($s0==='api' && $s1==='wishlist' && $s2==='check')  => (new UserController())->apiWishlistCheck(),
 
     // ── API: Admin ────────────────────────────────────────────
